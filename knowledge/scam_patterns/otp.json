@@ -1,0 +1,19 @@
+{
+  "category": "OTP_THEFT",
+  "threat_level": "CRITICAL",
+  "keywords": [
+    "verification code",
+    "one time password",
+    "otp",
+    "6-digit code",
+    "pin number",
+    "security code sent to your phone",
+    "read me the code"
+  ],
+  "common_pretexts": [
+    "Prevent unauthorized bank transaction",
+    "Cancel pending fraud charge",
+    "Verify account ownership"
+  ],
+  "risk_weight": 0.95
+}

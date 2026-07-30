@@ -1,0 +1,12 @@
+[
+  {
+    "name": "Chase Bank",
+    "official_phone_numbers": ["1-800-935-9935"],
+    "policy_statement": "Chase will NEVER call you asking for your 6-digit OTP code or ask you to transfer money to a 'safe account'."
+  },
+  {
+    "name": "Bank of America",
+    "official_phone_numbers": ["1-800-432-1000"],
+    "policy_statement": "Bank of America reps will never ask for passcode, PIN, or Zelle transfer for security verification."
+  }
+]

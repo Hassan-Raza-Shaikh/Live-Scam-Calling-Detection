@@ -1,0 +1,17 @@
+{
+  "category": "BANKING_FRAUD",
+  "threat_level": "HIGH",
+  "keywords": [
+    "fraud department",
+    "suspicious transfer",
+    "move your funds to a safe account",
+    "wire transfer",
+    "account compromise",
+    "security officer"
+  ],
+  "common_pretexts": [
+    "Your bank account is compromised by internal bank staff",
+    "Transfer funds to government safe vault"
+  ],
+  "risk_weight": 0.88
+}
