@@ -1,0 +1,19 @@
+intent: URGENCY
+description: Tactics that pressure the victim to act immediately to prevent loss or legal action.
+category: Urgency
+weight: 20
+priority: medium
+phrases:
+  - act now
+  - immediately
+  - do not hang up
+  - final warning
+  - within 24 hours
+patterns:
+  - do this * immediately
+  - you must * now
+regex:
+  - "\\b(hurry|urgent|immediate|fast)\\b"
+future:
+  enable_fuzzy: true
+  enable_embeddings: false

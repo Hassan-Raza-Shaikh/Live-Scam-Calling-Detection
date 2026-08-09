@@ -1,0 +1,18 @@
+intent: CRYPTO_SCAM
+description: Cryptocurrency fraud involving wallet deposits, bitcoin purchases, or keys.
+category: Financial
+weight: 35
+priority: high
+phrases:
+  - buy bitcoin
+  - transfer to crypto wallet
+  - ledger verification
+  - deposit cryptocurrency
+patterns:
+  - send * bitcoin
+  - transfer * wallet
+regex:
+  - "\\b(bitcoin|ethereum|crypto|coinbase|binance)\\b"
+future:
+  enable_fuzzy: true
+  enable_embeddings: false

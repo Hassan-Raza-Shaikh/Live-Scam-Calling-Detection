@@ -1,0 +1,18 @@
+intent: IMPERSONATION
+description: Pretending to be support staff, family, or official service providers.
+category: Impersonation
+weight: 25
+priority: medium
+phrases:
+  - this is standard chartered support
+  - calling from microsoft support
+  - it is your grandson
+  - tech support department
+patterns:
+  - calling from * support
+  - represent the * team
+regex:
+  - "\\b(support|technician|representative|agent)\\b"
+future:
+  enable_fuzzy: true
+  enable_embeddings: false

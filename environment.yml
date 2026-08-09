@@ -1,0 +1,35 @@
+name: scam-call-detector
+channels:
+  - pytorch
+  - conda-forge
+  - defaults
+dependencies:
+  - python>=3.10
+  - pytorch
+  - torchaudio
+  - numpy
+  - scipy
+  - sqlalchemy
+  - pip
+  - pip:
+      - fastapi
+      - uvicorn[standard]
+      - pydantic
+      - pydantic-settings
+      - websockets
+      - langchain
+      - langgraph
+      - langchain-community
+      - faster-whisper
+      - silero-vad
+      - chromadb
+      - pyaudio
+      - sounddevice
+      - alembic
+      - python-multipart
+      - jinja2
+      - httpx
+      - structlog
+      - python-dotenv
+      - pytest
+      - pytest-asyncio

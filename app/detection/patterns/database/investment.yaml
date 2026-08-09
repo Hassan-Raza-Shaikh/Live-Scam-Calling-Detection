@@ -1,0 +1,18 @@
+intent: INVESTMENT_SCAM
+description: Promises of high, quick, or risk-free financial profits.
+category: Financial
+weight: 30
+priority: medium
+phrases:
+  - guaranteed high return
+  - risk free investment
+  - get rich quickly
+  - double your money
+patterns:
+  - make * profit
+  - invest * guarantee
+regex:
+  - "\\b(guaranteed|risk-free|multiplier|portfolio)\\b"
+future:
+  enable_fuzzy: true
+  enable_embeddings: false

@@ -1,0 +1,19 @@
+intent: REMOTE_ACCESS
+description: Prompting the user to download or open remote desktop or screen sharing tools.
+category: Remote Access
+weight: 35
+priority: high
+phrases:
+  - install anydesk now
+  - download teamviewer
+  - open anydesk
+  - install screen sharing
+patterns:
+  - install * anydesk
+  - download * teamviewer
+  - download * tool
+regex:
+  - "\\b(anydesk|teamviewer|supremo|rustdesk)\\b"
+future:
+  enable_fuzzy: true
+  enable_embeddings: false
