@@ -1,14 +1,17 @@
-from typing import Dict, Any
+from typing import Dict, Any, List
 from langgraph.graph import StateGraph, END
 from app.conversation.context import GraphState
 from app.preprocessing.cleaner import PIIMasker
 from app.detection.engine import DetectionEngine
+from app.risk.rule_engine import EmotionalManipulationAgent, SocialEngineeringPredictorAgent
 from app.utils.logger import get_logger
 
 logger = get_logger(__name__)
 
-# Built ONCE when the app starts — loads all 8 YAML scam-pattern files
+# Specialized Multi-Agent Workers
 _detection_engine = DetectionEngine()
+_emotional_agent = EmotionalManipulationAgent()
+_predictor_agent = SocialEngineeringPredictorAgent()
 
 async def workflow_supervisor_node(state: GraphState) -> GraphState:
     """Entry node: Preprocesses incoming transcript and routes to supervisor workflow."""
@@ -27,13 +30,13 @@ async def memory_supervisor_node(state: GraphState) -> GraphState:
     return state
 
 async def workers_execution_node(state: GraphState) -> GraphState:
-    """Runs the REAL 8-category scam pattern detector on the latest transcript."""
+    """Executes multi-agent specialized workers concurrently across patterns, emotions, and predictions."""
     text = state.get("latest_transcript", "")
+    transcripts = state.get("transcripts", [])
     worker_results = state.get("worker_results", {})
 
+    # Worker 1: 8-Category Pattern Detection Engine
     report = _detection_engine.detect(text)
-
-    # DEBUG LINE — watch your terminal when you send a phrase.
     logger.info(f"[DetectionEngine] text='{text}' -> Detections found: {len(report.detections)}")
 
     if report.detections:
@@ -47,7 +50,8 @@ async def workers_execution_node(state: GraphState) -> GraphState:
             "score": score,
             "confidence": 0.9,
             "detected_tactics": tactics,
-            "matched_phrases": matched_words
+            "matched_phrases": matched_words,
+            "reasoning": f"Identified signature phrases: {matched_words[:3]}"
         }
     else:
         worker_results["pattern_detection_agent"] = {
@@ -55,49 +59,79 @@ async def workers_execution_node(state: GraphState) -> GraphState:
             "score": 0.0,
             "confidence": 0.9,
             "detected_tactics": [],
-            "matched_phrases": []
+            "matched_phrases": [],
+            "reasoning": "No signature pattern hits."
         }
+
+    # Worker 2: Emotional & Psychological Manipulation Detector
+    emo_res = _emotional_agent.analyze(text)
+    worker_results["emotional_manipulation_agent"] = {
+        "agent_name": emo_res.agent_name,
+        "score": emo_res.score,
+        "confidence": emo_res.confidence,
+        "detected_tactics": emo_res.detected_tactics,
+        "reasoning": emo_res.reasoning
+    }
+
+    # Worker 3: Social Engineering Trajectory Predictor
+    pred_res = _predictor_agent.analyze(text, transcripts)
+    worker_results["social_engineering_predictor"] = {
+        "agent_name": pred_res.agent_name,
+        "score": pred_res.score,
+        "confidence": pred_res.confidence,
+        "detected_tactics": pred_res.detected_tactics,
+        "reasoning": pred_res.reasoning
+    }
 
     state["worker_results"] = worker_results
     return state
 
 async def consensus_supervisor_node(state: GraphState) -> GraphState:
-    """Aggregates worker signals into a coherent hypothesis."""
+    """Aggregates worker signals into a multi-agent consensus hypothesis."""
     results = state.get("worker_results", {})
-    max_score = max([res.get("score", 0.0) for res in results.values()], default=0.0)
+    all_scores = [res.get("score", 0.0) for res in results.values()]
+    max_score = max(all_scores, default=0.0)
 
     tactics = []
-    for res in results.values():
+    reasonings = []
+    for name, res in results.items():
         tactics.extend(res.get("detected_tactics", []))
+        r = res.get("reasoning", "")
+        if r and "No " not in r and "Normal " not in r:
+            reasonings.append(r)
 
-    state["detected_tactics"] = list(set(tactics))
-    state["consensus_hypothesis"] = f"Multi-worker consensus calculated max risk score of {max_score:.2f}."
+    state["detected_tactics"] = sorted(list(set(tactics)))
+    state["consensus_hypothesis"] = " | ".join(reasonings) if reasonings else "Normal conversation with no elevated threat flags."
     return state
 
 async def decision_supervisor_node(state: GraphState) -> GraphState:
-    """Calculates final risk score, risk level, and generates user guidance."""
+    """Calculates final risk score, risk level, and generates actionable user safety guidance."""
     results = state.get("worker_results", {})
-    scores = [res.get("score", 0.0) for res in results.values()]
-    avg_score = sum(scores) / len(scores) if scores else 0.0
-    max_score = max(scores, default=0.0)
+    scores = [res.get("score", 0.0) for res in results.values() if res.get("score", 0.0) > 0.0]
 
-    final_score = (max_score * 0.7) + (avg_score * 0.3)
+    if scores:
+        max_score = max(scores)
+        avg_score = sum(scores) / len(scores)
+        final_score = (max_score * 0.75) + (avg_score * 0.25)
+    else:
+        final_score = 0.0
+
     state["overall_risk_score"] = round(final_score, 2)
-
     tactics_str = ", ".join(state.get("detected_tactics", [])) or "none"
+    consensus = state.get("consensus_hypothesis", "")
 
     if final_score >= 0.75:
         state["risk_level"] = "CRITICAL" if final_score >= 0.90 else "HIGH"
-        state["explanation"] = f"High probability scam call detected. Tactics identified: {tactics_str}."
+        state["explanation"] = f"Multi-Agent Threat Alert: {consensus}"
         state["recommended_action"] = "DO NOT SHARE CODES OR TRANSFER MONEY. HANG UP IMMEDIATELY AND CALL OFFICIAL BANK NUMBER."
     elif final_score >= 0.45:
         state["risk_level"] = "MEDIUM"
-        state["explanation"] = f"Suspicious requests detected during call. Tactics identified: {tactics_str}."
+        state["explanation"] = f"Suspicious Activity Detected: {consensus}"
         state["recommended_action"] = "Verify caller identity before sharing any personal or financial information."
     else:
         state["risk_level"] = "LOW"
-        state["explanation"] = "No scam indicators currently detected."
-        state["recommended_action"] = "No action required."
+        state["explanation"] = "No scam indicators or psychological manipulation currently detected."
+        state["recommended_action"] = "Monitoring active. Speak normally into your microphone."
 
     return state
 
