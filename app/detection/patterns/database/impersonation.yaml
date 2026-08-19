@@ -1,18 +1,34 @@
 intent: IMPERSONATION
 description: Pretending to be support staff, family, or official service providers.
 category: Impersonation
-weight: 25
-priority: medium
+weight: 30
+priority: high
 phrases:
   - this is standard chartered support
   - calling from microsoft support
+  - calling from amazon support
+  - calling from apple support
+  - calling from paypal support
+  - customer support department
+  - fraud department representative
+  - security verification department
+  - technical support team
   - it is your grandson
+  - it is your family member
   - tech support department
+  - this is the security verification
+  - calling on behalf of your bank
+  - speaking with the security team
 patterns:
   - calling from * support
+  - calling from * department
+  - this is the * verification
+  - this is * support
   - represent the * team
+  - security * representative
 regex:
-  - "\\b(support|technician|representative|agent)\\b"
+  - "\\b(support|technician|representative|agent|officer|specialist)\\b"
 future:
   enable_fuzzy: true
   enable_embeddings: false
+

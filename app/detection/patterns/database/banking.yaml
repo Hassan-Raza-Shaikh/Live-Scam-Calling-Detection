@@ -1,7 +1,7 @@
 intent: BANKING_FRAUD
 description: Fraudulent claims regarding bank accounts, suspicious activity, or transactions.
 category: Banking
-weight: 30
+weight: 35
 priority: high
 phrases:
   - bank account has been blocked
@@ -10,12 +10,45 @@ phrases:
   - security alert from bank
   - routing number
   - check routing
+  - unusual activity on your account
+  - unusual activity
+  - suspicious activity
+  - security verification
+  - security department
+  - fraud prevention department
+  - fraud department
+  - confirm your full name
+  - confirm your identity
+  - verify your identity
+  - alerts from your bank
+  - alert from your bank
+  - online account
+  - safe account
+  - government holding account
+  - compromised account
+  - did you authorize this
+  - did you make this transaction
+  - funds are at risk
+  - secure your money
+  - wire transfer
+  - zelle transfer
 patterns:
+  - unusual * activity
+  - suspicious * activity
+  - security * verification
+  - confirm your * name
+  - alerts from * bank
+  - activity on your * account
+  - verify * account
+  - transfer * safe account
+  - authorize * transaction
+  - notice * alert
   - transfer money to * account
   - verify your * credentials
   - secure your * funds
 regex:
-  - "\\b(blocked|suspended|frozen|unauthorized)\\b"
+  - "\\b(blocked|suspended|frozen|unauthorized|fraud|compromised|unusual|verification)\\b"
 future:
   enable_fuzzy: true
   enable_embeddings: false
+

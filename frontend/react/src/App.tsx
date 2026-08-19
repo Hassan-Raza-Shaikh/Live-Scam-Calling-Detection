@@ -43,10 +43,16 @@ export default function App() {
   const audioContextRef = useRef<AudioContext | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const animFrameRef = useRef<number | null>(null);
+  const silenceTimerRef = useRef<any>(null);
+  const pendingInterimRef = useRef<string>('');
 
   isLiveRef.current = isLive;
 
   const cleanup = () => {
+    if (silenceTimerRef.current) {
+      clearTimeout(silenceTimerRef.current);
+      silenceTimerRef.current = null;
+    }
     if (animFrameRef.current) {
       cancelAnimationFrame(animFrameRef.current);
       animFrameRef.current = null;
@@ -106,6 +112,14 @@ export default function App() {
     if (!text || !text.trim()) return;
     const cleanText = text.trim();
 
+    // Clear any pending silence timer
+    if (silenceTimerRef.current) {
+      clearTimeout(silenceTimerRef.current);
+      silenceTimerRef.current = null;
+    }
+    pendingInterimRef.current = '';
+    setLiveInterim('');
+
     // Append to local history immediately
     const newItem: TranscriptItem = {
       id: Math.random().toString(36).substring(2, 9),
@@ -113,7 +127,6 @@ export default function App() {
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })
     };
     setTranscriptHistory((prev) => [newItem, ...prev.slice(0, 19)]);
-    setLiveInterim('');
 
     // Send to backend via WebSocket
     if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
@@ -136,7 +149,7 @@ export default function App() {
         const data = JSON.parse(event.data);
         if (data.type === 'threat_update') {
           setThreat(data);
-          // Mark latest transcript item
+          // Mark latest transcript item if risk is elevated
           if (data.risk_score >= 0.45) {
             setTranscriptHistory((prev) =>
               prev.map((item, idx) => (idx === 0 ? { ...item, isScam: true } : item))
@@ -170,6 +183,8 @@ export default function App() {
         }
 
         const setupRecognition = () => {
+          if (!isLiveRef.current) return;
+
           const recognition = new SpeechRecognition();
           recognition.continuous = true;
           recognition.interimResults = true;
@@ -181,22 +196,34 @@ export default function App() {
           };
 
           recognition.onresult = (event: any) => {
-            let interim = '';
+            let fullInterim = '';
             for (let i = event.resultIndex; i < event.results.length; ++i) {
-              const transcriptPiece = event.results[i][0].transcript;
+              const piece = event.results[i][0].transcript;
               if (event.results[i].isFinal) {
-                sendPhraseToBackend(transcriptPiece);
+                sendPhraseToBackend(piece);
               } else {
-                interim += transcriptPiece;
+                fullInterim += piece;
               }
             }
-            if (interim) {
-              setLiveInterim(interim);
+
+            if (fullInterim) {
+              setLiveInterim(fullInterim);
+              pendingInterimRef.current = fullInterim;
+
+              // AUTO SILENCE FLUSH: Flush phrase after 900ms pause so next person's speech is never lost!
+              if (silenceTimerRef.current) {
+                clearTimeout(silenceTimerRef.current);
+              }
+              silenceTimerRef.current = setTimeout(() => {
+                if (pendingInterimRef.current && isLiveRef.current) {
+                  sendPhraseToBackend(pendingInterimRef.current);
+                }
+              }, 900);
             }
           };
 
           recognition.onerror = (event: any) => {
-            console.warn('Speech recognition warning/error:', event.error);
+            console.warn('Speech recognition warning:', event.error);
             if (event.error === 'not-allowed') {
               alert('Microphone access was denied. Please allow microphone access in your browser settings.');
               stopLiveSession();
@@ -205,17 +232,20 @@ export default function App() {
 
           recognition.onend = () => {
             setIsRecognizing(false);
-            // AUTO RESTART: Chrome stops recognition after periods of silence.
-            // If the user hasn't clicked stop, restart immediately!
+            // Flush any pending text before restart
+            if (pendingInterimRef.current && isLiveRef.current) {
+              sendPhraseToBackend(pendingInterimRef.current);
+            }
+
+            // Immediately restart recognition loop
             if (isLiveRef.current) {
-              try {
-                recognition.start();
-              } catch (e) {
-                // If start fails, recreate recognition
-                setTimeout(() => {
-                  if (isLiveRef.current) setupRecognition();
-                }, 300);
-              }
+              setTimeout(() => {
+                if (isLiveRef.current) {
+                  try {
+                    setupRecognition();
+                  } catch (e) {}
+                }
+              }, 100);
             }
           };
 
@@ -223,7 +253,10 @@ export default function App() {
             recognition.start();
             recognitionRef.current = recognition;
           } catch (err) {
-            console.error('Failed to start speech recognition:', err);
+            console.warn('Failed to start recognition, retrying:', err);
+            setTimeout(() => {
+              if (isLiveRef.current) setupRecognition();
+            }, 250);
           }
         };
 
