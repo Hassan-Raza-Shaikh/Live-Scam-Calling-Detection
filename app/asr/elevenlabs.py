@@ -17,14 +17,16 @@ class ElevenLabsScribeClient:
         # Fallback to a dummy key if not provided to allow testing the pipeline
         self.api_key = api_key or getattr(settings, "elevenlabs_api_key", "dummy_key")
         
-        # NOTE: Update this to the exact Scribe v2 endpoint if it differs from the standard STT endpoint.
-        self.ws_url = f"wss://api.elevenlabs.io/v1/speech-to-text?api_key={self.api_key}"
+        self.ws_url = "wss://api.elevenlabs.io/v1/speech-to-text/realtime"
         self.ws = None
 
     async def connect(self):
-        logger.info(f"Connecting to ElevenLabs Scribe v2 at {self.ws_url.split('?')[0]}")
+        logger.info(f"Connecting to ElevenLabs Scribe v2 at {self.ws_url}")
         try:
-            self.ws = await websockets.connect(self.ws_url)
+            self.ws = await websockets.connect(
+                self.ws_url,
+                additional_headers={"xi-api-key": self.api_key}
+            )
         except Exception as e:
             logger.error(f"Failed to connect to ElevenLabs: {e}")
             self.ws = None

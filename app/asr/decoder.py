@@ -13,7 +13,7 @@ class ASRStreamDecoder:
     and extracting progressive transcripts.
     """
     
-    def __init__(self, recognizer: sherpa_onnx.OnlineRecognizer, sample_rate: int = 16000):
+    def __init__(self, recognizer: "Any", sample_rate: int = 16000):
         """
         Initialize the decoder stream wrapper.
 

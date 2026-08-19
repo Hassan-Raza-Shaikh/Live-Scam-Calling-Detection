@@ -10,6 +10,7 @@ class Settings(BaseSettings):
     
     # LLM Settings
     openai_api_key: str = ""
+    elevenlabs_api_key: str = ""
     llm_provider: str = "openai"
     
     # ASR Settings

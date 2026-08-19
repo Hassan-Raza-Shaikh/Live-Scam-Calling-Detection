@@ -130,14 +130,7 @@ async def websocket_live_stream(websocket: WebSocket, session_id: str):
         if elevenlabs_client:
             await elevenlabs_client.close()
 
-            # Broadcast to EVERYONE connected on this session (live_bridge.py sent it,
-            # but the browser tab needs to receive it too)
-            await manager.send_json(session_id, response)
-
-    except WebSocketDisconnect:
-        manager.disconnect(session_id, websocket)
-
-
+# Pydantic Schemas for Session Routes
 class StartSessionRequest(BaseModel):
     user_id: str = "default_user"
     device_type: str = "desktop"
