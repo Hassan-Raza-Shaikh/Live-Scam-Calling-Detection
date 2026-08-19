@@ -63,6 +63,7 @@ async def websocket_live_stream(websocket: WebSocket, session_id: str):
         if not transcript_text:
             return
             
+        print(f"🎙️ [WebSocket Ingest] sess={session_id} transcript='{transcript_text}'")
         # Fast-path check
         fast_path_result = otp_agent.analyze(transcript_text)
         fast_path_alert = fast_path_result.score >= 0.85
