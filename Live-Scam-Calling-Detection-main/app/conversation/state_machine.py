@@ -2,12 +2,10 @@ from typing import Dict, Any
 from langgraph.graph import StateGraph, END
 from app.conversation.context import GraphState
 from app.preprocessing.cleaner import PIIMasker
+
 from app.detection.engine import DetectionEngine
-from app.utils.logger import get_logger
 
-logger = get_logger(__name__)
-
-# Built ONCE when the app starts — loads all 8 YAML scam-pattern files
+# Build the detector ONE time when the app starts
 _detection_engine = DetectionEngine()
 
 async def workflow_supervisor_node(state: GraphState) -> GraphState:
@@ -31,14 +29,13 @@ async def workers_execution_node(state: GraphState) -> GraphState:
     text = state.get("latest_transcript", "")
     worker_results = state.get("worker_results", {})
 
+    # Ask the real detection engine to check the text against all 8 scam categories
     report = _detection_engine.detect(text)
-
-    # DEBUG LINE — watch your terminal when you send a phrase.
-    logger.info(f"[DetectionEngine] text='{text}' -> Detections found: {len(report.detections)}")
 
     if report.detections:
         best_weight = max(d.weight for d in report.detections)
         score = min(1.0, best_weight / 40.0)
+
         tactics = sorted(set(d.intent for d in report.detections))
         matched_words = sorted(set(d.matched_text for d in report.detections))
 
@@ -65,11 +62,11 @@ async def consensus_supervisor_node(state: GraphState) -> GraphState:
     """Aggregates worker signals into a coherent hypothesis."""
     results = state.get("worker_results", {})
     max_score = max([res.get("score", 0.0) for res in results.values()], default=0.0)
-
+    
     tactics = []
     for res in results.values():
         tactics.extend(res.get("detected_tactics", []))
-
+    
     state["detected_tactics"] = list(set(tactics))
     state["consensus_hypothesis"] = f"Multi-worker consensus calculated max risk score of {max_score:.2f}."
     return state
@@ -80,19 +77,18 @@ async def decision_supervisor_node(state: GraphState) -> GraphState:
     scores = [res.get("score", 0.0) for res in results.values()]
     avg_score = sum(scores) / len(scores) if scores else 0.0
     max_score = max(scores, default=0.0)
-
+    
+    # Weighted calculation
     final_score = (max_score * 0.7) + (avg_score * 0.3)
     state["overall_risk_score"] = round(final_score, 2)
-
-    tactics_str = ", ".join(state.get("detected_tactics", [])) or "none"
-
+    
     if final_score >= 0.75:
         state["risk_level"] = "CRITICAL" if final_score >= 0.90 else "HIGH"
-        state["explanation"] = f"High probability scam call detected. Tactics identified: {tactics_str}."
+        state["explanation"] = "High probability scam call detected! Caller is using high urgency or demanding verification credentials."
         state["recommended_action"] = "DO NOT SHARE CODES OR TRANSFER MONEY. HANG UP IMMEDIATELY AND CALL OFFICIAL BANK NUMBER."
     elif final_score >= 0.45:
         state["risk_level"] = "MEDIUM"
-        state["explanation"] = f"Suspicious requests detected during call. Tactics identified: {tactics_str}."
+        state["explanation"] = "Suspicious requests detected during call. Exercise caution."
         state["recommended_action"] = "Verify caller identity before sharing any personal or financial information."
     else:
         state["risk_level"] = "LOW"
@@ -104,21 +100,23 @@ async def decision_supervisor_node(state: GraphState) -> GraphState:
 def build_sentinel_graph():
     """Builds and compiles the Sentinel AI LangGraph Supervisor-Worker state machine."""
     workflow = StateGraph(GraphState)
-
+    
+    # Add Nodes
     workflow.add_node("workflow_supervisor", workflow_supervisor_node)
     workflow.add_node("memory_supervisor", memory_supervisor_node)
     workflow.add_node("workers_execution", workers_execution_node)
     workflow.add_node("consensus_supervisor", consensus_supervisor_node)
     workflow.add_node("decision_supervisor", decision_supervisor_node)
-
+    
+    # Define Edges
     workflow.set_entry_point("workflow_supervisor")
     workflow.add_edge("workflow_supervisor", "memory_supervisor")
     workflow.add_edge("memory_supervisor", "workers_execution")
     workflow.add_edge("workers_execution", "consensus_supervisor")
     workflow.add_edge("consensus_supervisor", "decision_supervisor")
     workflow.add_edge("decision_supervisor", END)
-
+    
     return workflow.compile()
 
-
+# Global compiled sentinel graph instance
 sentinel_app = build_sentinel_graph()

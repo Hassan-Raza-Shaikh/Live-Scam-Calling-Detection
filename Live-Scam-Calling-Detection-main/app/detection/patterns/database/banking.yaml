@@ -1,0 +1,21 @@
+intent: BANKING_FRAUD
+description: Fraudulent claims regarding bank accounts, suspicious activity, or transactions.
+category: Banking
+weight: 30
+priority: high
+phrases:
+  - bank account has been blocked
+  - unauthorized transaction
+  - suspend your credit card
+  - security alert from bank
+  - routing number
+  - check routing
+patterns:
+  - transfer money to * account
+  - verify your * credentials
+  - secure your * funds
+regex:
+  - "\\b(blocked|suspended|frozen|unauthorized)\\b"
+future:
+  enable_fuzzy: true
+  enable_embeddings: false

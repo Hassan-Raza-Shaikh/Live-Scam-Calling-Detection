@@ -4,7 +4,6 @@ import asyncio
 from fastapi import FastAPI, APIRouter, WebSocket, WebSocketDisconnect, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-
 from app.config import settings
 from app.conversation.state_machine import sentinel_app
 from app.risk.rule_engine import OTPDetectionAgent
@@ -27,7 +26,6 @@ app.add_middleware(
 # OTP Agent for fast-path check
 otp_agent = OTPDetectionAgent()
 
-# Connection Manager for WebSockets
 class ConnectionManager:
     """
     Holds a LIST of connections per session_id.
@@ -56,7 +54,6 @@ class ConnectionManager:
 
 manager = ConnectionManager()
 
-# WebSocket Route
 @app.websocket("/ws/live/{session_id}")
 async def websocket_live_stream(websocket: WebSocket, session_id: str):
     await manager.connect(session_id, websocket)
@@ -133,7 +130,14 @@ async def websocket_live_stream(websocket: WebSocket, session_id: str):
         if elevenlabs_client:
             await elevenlabs_client.close()
 
-# Pydantic Schemas for Session Routes
+            # Broadcast to EVERYONE connected on this session (live_bridge.py sent it,
+            # but the browser tab needs to receive it too)
+            await manager.send_json(session_id, response)
+
+    except WebSocketDisconnect:
+        manager.disconnect(session_id, websocket)
+
+
 class StartSessionRequest(BaseModel):
     user_id: str = "default_user"
     device_type: str = "desktop"
@@ -143,7 +147,7 @@ class StartSessionResponse(BaseModel):
     status: str
     ws_endpoint: str
 
-# API Router setup
+
 api_router = APIRouter(prefix="/api/v1")
 
 @api_router.post("/session/start", response_model=StartSessionResponse, tags=["Session"])
@@ -166,5 +170,6 @@ async def health_check():
         "version": "0.1.0",
         "environment": settings.environment
     }
+
 
 app.include_router(api_router)

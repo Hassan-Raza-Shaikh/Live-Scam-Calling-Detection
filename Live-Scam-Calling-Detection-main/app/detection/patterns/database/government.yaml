@@ -1,0 +1,18 @@
+intent: GOVERNMENT_IMPERSONATION
+description: Fake IRS agents, social security officials, police officers, or tax authorities.
+category: Impersonation
+weight: 35
+priority: high
+phrases:
+  - tax evasion department
+  - irs collection agent
+  - police department arrest warrant
+  - federal reserve bank
+patterns:
+  - calling from * irs
+  - warrant for * arrest
+regex:
+  - "\\b(irs|fbi|police|sheriff|arrest|jail|lawsuit)\\b"
+future:
+  enable_fuzzy: true
+  enable_embeddings: false

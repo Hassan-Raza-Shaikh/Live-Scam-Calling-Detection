@@ -1,0 +1,14 @@
+{
+  "category": "TECH_SUPPORT",
+  "threat_level": "HIGH",
+  "keywords": [
+    "virus detected",
+    "microsoft support",
+    "anydesk",
+    "teamviewer",
+    "remote access",
+    "ip address compromised",
+    "windows Defender alert"
+  ],
+  "risk_weight": 0.85
+}

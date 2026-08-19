@@ -1,0 +1,12 @@
+{
+  "name": "sentinel-ai-desktop",
+  "version": "0.1.0",
+  "description": "Sentinel AI Desktop Real-Time Call Scam Shield",
+  "main": "main.ts",
+  "scripts": {
+    "start": "electron ."
+  },
+  "dependencies": {
+    "electron": "^29.1.5"
+  }
+}

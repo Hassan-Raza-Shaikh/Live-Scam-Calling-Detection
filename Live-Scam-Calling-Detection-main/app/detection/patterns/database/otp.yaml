@@ -1,0 +1,21 @@
+intent: OTP_REQUEST
+description: Requests for verification codes or one-time passwords.
+category: Banking
+weight: 35
+priority: high
+phrases:
+  - otp
+  - one time password
+  - verification code
+  - authentication code
+  - sms code
+patterns:
+  - tell me * code
+  - read * code
+  - share * code
+  - what code did you receive
+regex:
+  - "\\b\\d{6}\\b"
+future:
+  enable_fuzzy: true
+  enable_embeddings: false
