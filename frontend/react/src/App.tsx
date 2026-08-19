@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 
 interface ThreatData {
   risk_score: number;
@@ -12,9 +12,10 @@ interface ThreatData {
 
 export default function App() {
   const [isLive, setIsLive] = useState(false);
+  const [engine, setEngine] = useState<'webspeech' | 'scribe'>('webspeech');
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [threat, setThreat] = useState<ThreatData>({
-    risk_score: 0.12,
+    risk_score: 0.0,
     risk_level: 'LOW',
     fast_path_alert: false,
     latest_transcript: 'Call connected. Monitoring active stream...',
@@ -23,61 +24,130 @@ export default function App() {
     recommended_action: 'Continue call safely.'
   });
 
-  const [simulatedTranscripts, setSimulatedTranscripts] = useState<string[]>([
-    "Hello? I am calling from Chase Bank Fraud Prevention.",
-    "We noticed an urgent attempt to transfer $2,500 from your account.",
-    "To stop this transfer, please tell me the 6-digit verification code sent to your phone immediately."
-  ]);
-  const [transcriptIndex, setTranscriptIndex] = useState(0);
+  const wsRef = useRef<WebSocket | null>(null);
+  const recognitionRef = useRef<any>(null);
+  const audioContextRef = useRef<AudioContext | null>(null);
+  const streamRef = useRef<MediaStream | null>(null);
 
-  const startLiveSession = () => {
+  const cleanup = () => {
+    if (wsRef.current) {
+      wsRef.current.close();
+      wsRef.current = null;
+    }
+    if (recognitionRef.current) {
+      recognitionRef.current.stop();
+      recognitionRef.current = null;
+    }
+    if (audioContextRef.current) {
+      audioContextRef.current.close();
+      audioContextRef.current = null;
+    }
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach(track => track.stop());
+      streamRef.current = null;
+    }
+  };
+
+  const float32ToInt16 = (buffer: Float32Array) => {
+    let l = buffer.length;
+    const buf = new Int16Array(l);
+    while (l--) {
+      buf[l] = Math.min(1, buffer[l]) * 0x7FFF;
+    }
+    return buf.buffer;
+  };
+
+  const bufferToBase64 = (buffer: ArrayBuffer) => {
+    let binary = '';
+    const bytes = new Uint8Array(buffer);
+    const len = bytes.byteLength;
+    for (let i = 0; i < len; i++) {
+        binary += String.fromCharCode(bytes[i]);
+    }
+    return window.btoa(binary);
+  };
+
+  const startLiveSession = async () => {
     setIsLive(true);
-    setSessionId(`sess_${Math.random().toString(36).substr(2, 9)}`);
+    const newSessionId = `sess_${Math.random().toString(36).substr(2, 9)}`;
+    setSessionId(newSessionId);
+    
+    // 1. Connect WebSocket to FastAPI
+    const ws = new WebSocket(`ws://localhost:8000/ws/live/${newSessionId}`);
+    wsRef.current = ws;
+    
+    ws.onmessage = (event) => {
+      const data = JSON.parse(event.data);
+      if (data.type === 'threat_update') {
+        setThreat(data);
+      }
+    };
+
+    ws.onopen = async () => {
+      if (engine === 'webspeech') {
+        // Path 1: Native Web Speech API
+        const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+        if (!SpeechRecognition) {
+          alert("Web Speech API not supported in this browser. Try Scribe v2 mode.");
+          return;
+        }
+        
+        const recognition = new SpeechRecognition();
+        recognition.continuous = true;
+        recognition.interimResults = false; // Send only final phrases
+        
+        recognition.onresult = (event: any) => {
+          const resultIndex = event.resultIndex;
+          const transcript = event.results[resultIndex][0].transcript;
+          if (ws.readyState === WebSocket.OPEN) {
+            ws.send(JSON.stringify({ transcript }));
+          }
+        };
+        
+        recognition.start();
+        recognitionRef.current = recognition;
+        
+      } else {
+        // Path 2: Scribe v2 (Raw Audio via WS)
+        try {
+          const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+          streamRef.current = stream;
+          
+          const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 16000 });
+          audioContextRef.current = audioContext;
+          
+          const source = audioContext.createMediaStreamSource(stream);
+          const processor = audioContext.createScriptProcessor(4096, 1, 1);
+          
+          source.connect(processor);
+          processor.connect(audioContext.destination);
+          
+          processor.onaudioprocess = (e) => {
+            if (ws.readyState !== WebSocket.OPEN) return;
+            
+            const float32Data = e.inputBuffer.getChannelData(0);
+            const int16Buffer = float32ToInt16(float32Data);
+            const base64Audio = bufferToBase64(int16Buffer);
+            
+            ws.send(JSON.stringify({ audio_b64: base64Audio }));
+          };
+          
+        } catch (err) {
+          console.error("Error accessing microphone:", err);
+          alert("Microphone access denied.");
+        }
+      }
+    };
   };
 
   const stopLiveSession = () => {
     setIsLive(false);
+    cleanup();
   };
 
-  const injectSimulatedPhrase = () => {
-    if (transcriptIndex < simulatedTranscripts.length) {
-      const text = simulatedTranscripts[transcriptIndex];
-      setTranscriptIndex(prev => prev + 1);
-
-      // Simulate Fast-Path + Supervisor Evaluation
-      if (text.includes("6-digit verification code")) {
-        setThreat({
-          risk_score: 0.95,
-          risk_level: 'CRITICAL',
-          fast_path_alert: true,
-          latest_transcript: text,
-          detected_tactics: ['OTP_THEFT', 'IMPERSONATION_BANK', 'HIGH_URGENCY'],
-          explanation: 'CRITICAL THREAT: Caller requested a 6-digit OTP code claiming to be your bank.',
-          recommended_action: 'DO NOT SHARE CODE. HANG UP IMMEDIATELY!'
-        });
-      } else if (text.includes("transfer $2,500")) {
-        setThreat({
-          risk_score: 0.65,
-          risk_level: 'HIGH',
-          fast_path_alert: false,
-          latest_transcript: text,
-          detected_tactics: ['IMPERSONATION_BANK', 'URGENCY'],
-          explanation: 'Caller claiming financial threat requiring urgent action.',
-          recommended_action: 'Verify caller identity independently before taking action.'
-        });
-      } else {
-        setThreat({
-          risk_score: 0.25,
-          risk_level: 'LOW',
-          fast_path_alert: false,
-          latest_transcript: text,
-          detected_tactics: ['BANK_MENTION'],
-          explanation: 'Caller introduced bank identity.',
-          recommended_action: 'Listen carefully.'
-        });
-      }
-    }
-  };
+  useEffect(() => {
+    return cleanup;
+  }, []);
 
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#030712', color: '#f3f4f6', padding: '2rem' }}>
@@ -94,6 +164,17 @@ export default function App() {
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+          
+          <select 
+            value={engine} 
+            onChange={(e) => setEngine(e.target.value as 'webspeech' | 'scribe')}
+            disabled={isLive}
+            style={{ padding: '0.625rem', borderRadius: '0.5rem', backgroundColor: '#1f2937', color: 'white', border: '1px solid #374151', cursor: isLive ? 'not-allowed' : 'pointer' }}
+          >
+            <option value="webspeech">Native Web Speech API (Local)</option>
+            <option value="scribe">ElevenLabs Scribe v2 (Cloud)</option>
+          </select>
+
           <button 
             onClick={isLive ? stopLiveSession : startLiveSession}
             style={{
@@ -116,9 +197,9 @@ export default function App() {
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
         
         {/* Left Column: Real-Time Stream & Risk Meter */}
-        <div className="glass-panel" style={{ padding: '1.5rem', borderRadius: '1rem' }}>
+        <div className="glass-panel" style={{ padding: '1.5rem', borderRadius: '1rem', backgroundColor: 'rgba(17, 24, 39, 0.5)', border: '1px solid #1f2937' }}>
           <h2 style={{ fontSize: '1.25rem', fontWeight: '600', marginBottom: '1rem', color: '#38bdf8' }}>
-            Live Stream Diagnostics
+            Live Stream Diagnostics ({engine === 'webspeech' ? 'Web Speech API' : 'Scribe v2'})
           </h2>
 
           {/* Risk Score Gauge */}
@@ -144,40 +225,60 @@ export default function App() {
           {/* Live Transcript Stream Box */}
           <div style={{ marginBottom: '1.5rem' }}>
             <h3 style={{ fontSize: '0.875rem', color: '#9ca3af', marginBottom: '0.5rem' }}>Latest Live Transcript Segment</h3>
-            <div style={{ padding: '1rem', backgroundColor: '#0f172a', borderRadius: '0.5rem', border: '1px solid #1e293b', fontFamily: 'var(--font-mono)', fontSize: '0.9rem', color: '#e2e8f0' }}>
+            <div style={{ padding: '1rem', backgroundColor: '#0f172a', borderRadius: '0.5rem', border: '1px solid #1e293b', fontFamily: 'var(--font-mono)', fontSize: '0.9rem', color: '#e2e8f0', minHeight: '80px' }}>
               {threat.latest_transcript}
             </div>
+            {isLive && sessionId && (
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '0.5rem' }}>
+                <span style={{ fontSize: '0.75rem', color: '#38bdf8', fontFamily: 'monospace' }}>
+                  Session: {sessionId}
+                </span>
+                <button
+                  onClick={() => {
+                    navigator.clipboard.writeText(sessionId);
+                    alert('Copied Session ID!');
+                  }}
+                  style={{ fontSize: '0.7rem', padding: '0.15rem 0.5rem', borderRadius: '0.35rem', border: '1px solid #1e293b', backgroundColor: '#0f172a', color: '#9ca3af', cursor: 'pointer' }}
+                >
+                  Copy Session ID
+                </button>
+              </div>
+            )}
           </div>
-
-          {/* Simulation Controls */}
+          
+          {/* Manual Input Override */}
           {isLive && (
-            <button 
-              onClick={injectSimulatedPhrase}
-              style={{
-                width: '100%',
-                padding: '0.75rem',
-                backgroundColor: '#3b82f6',
-                color: 'white',
-                border: 'none',
-                borderRadius: '0.5rem',
-                fontWeight: '600',
-                cursor: 'pointer'
-              }}
-            >
-              Simulate Incoming Call Phrase ({transcriptIndex + 1}/{simulatedTranscripts.length})
-            </button>
+            <div style={{ display: 'flex', gap: '0.5rem' }}>
+              <input
+                id="testInputOverride"
+                placeholder="Or type a phrase manually..."
+                style={{ flex: 1, padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid #1e293b', backgroundColor: '#0f172a', color: 'white' }}
+              />
+              <button
+                onClick={() => {
+                  const input = document.getElementById('testInputOverride') as HTMLInputElement;
+                  if (input && input.value.trim() && wsRef.current?.readyState === WebSocket.OPEN) {
+                    wsRef.current.send(JSON.stringify({ transcript: input.value }));
+                    input.value = '';
+                  }
+                }}
+                style={{ padding: '0.75rem 1.25rem', backgroundColor: '#3b82f6', color: 'white', border: 'none', borderRadius: '0.5rem', fontWeight: 600, cursor: 'pointer' }}
+              >
+                Send to Backend
+              </button>
+            </div>
           )}
         </div>
 
         {/* Right Column: Threat Assessment & Mitigations */}
-        <div className="glass-panel" style={{ padding: '1.5rem', borderRadius: '1rem' }}>
+        <div className="glass-panel" style={{ padding: '1.5rem', borderRadius: '1rem', backgroundColor: 'rgba(17, 24, 39, 0.5)', border: '1px solid #1f2937' }}>
           <h2 style={{ fontSize: '1.25rem', fontWeight: '600', marginBottom: '1rem', color: '#818cf8' }}>
             Supervisor Agent Analysis
           </h2>
 
           {/* Emergency Alert Banner if Critical */}
           {threat.fast_path_alert && (
-            <div className="glass-alert pulse-red" style={{ padding: '1rem', borderRadius: '0.75rem', marginBottom: '1.5rem', color: '#fca5a5' }}>
+            <div className="glass-alert pulse-red" style={{ padding: '1rem', borderRadius: '0.75rem', marginBottom: '1.5rem', backgroundColor: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.3)', color: '#fca5a5' }}>
               <div style={{ fontWeight: 'bold', fontSize: '1.1rem', marginBottom: '0.25rem' }}>⚠️ FAST-PATH EMERGENCY ALERT</div>
               <div>OTP / Verification Code theft attempt detected in under 200ms.</div>
             </div>
@@ -187,7 +288,7 @@ export default function App() {
           <div style={{ marginBottom: '1.5rem' }}>
             <h3 style={{ fontSize: '0.875rem', color: '#9ca3af', marginBottom: '0.5rem' }}>Detected Fraud Tactics</h3>
             <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-              {threat.detected_tactics.length > 0 ? (
+              {threat.detected_tactics && threat.detected_tactics.length > 0 ? (
                 threat.detected_tactics.map((tactic, idx) => (
                   <span key={idx} style={{ padding: '0.25rem 0.75rem', backgroundColor: 'rgba(239, 68, 68, 0.2)', border: '1px solid rgba(239, 68, 68, 0.4)', borderRadius: '1rem', fontSize: '0.8rem', color: '#fca5a5' }}>
                     {tactic}
