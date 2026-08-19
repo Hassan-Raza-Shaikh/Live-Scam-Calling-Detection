@@ -109,7 +109,10 @@ async def websocket_live_stream(websocket: WebSocket, session_id: str):
     try:
         while True:
             data = await websocket.receive_text()
-            payload = json.loads(data)
+            try:
+                payload = json.loads(data)
+            except json.JSONDecodeError:
+                continue
             
             if "transcript" in payload:
                 # Path 1: Client sends text directly (Web Speech API)

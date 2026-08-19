@@ -76,7 +76,7 @@ export default function App() {
     setSessionId(newSessionId);
     
     // 1. Connect WebSocket to FastAPI
-    const ws = new WebSocket(`ws://localhost:8000/ws/live/${newSessionId}`);
+    const ws = new WebSocket(`ws://${window.location.hostname}:8000/ws/live/${newSessionId}`);
     wsRef.current = ws;
     
     ws.onmessage = (event) => {
@@ -84,6 +84,16 @@ export default function App() {
       if (data.type === 'threat_update') {
         setThreat(data);
       }
+    };
+
+    ws.onerror = (err) => {
+      console.error("WebSocket error:", err);
+      alert("Failed to connect to the backend server. Is it running?");
+      stopLiveSession();
+    };
+
+    ws.onclose = () => {
+      stopLiveSession();
     };
 
     ws.onopen = async () => {

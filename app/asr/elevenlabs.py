@@ -17,11 +17,11 @@ class ElevenLabsScribeClient:
         # Fallback to a dummy key if not provided to allow testing the pipeline
         self.api_key = api_key or getattr(settings, "elevenlabs_api_key", "dummy_key")
         
-        self.ws_url = "wss://api.elevenlabs.io/v1/speech-to-text/realtime"
+        self.ws_url = "wss://api.elevenlabs.io/v1/speech-to-text/realtime?model_id=scribe_v2_realtime&audio_format=pcm_16000"
         self.ws = None
 
     async def connect(self):
-        logger.info(f"Connecting to ElevenLabs Scribe v2 at {self.ws_url}")
+        logger.info(f"Connecting to ElevenLabs Scribe v2 at {self.ws_url.split('?')[0]}")
         try:
             self.ws = await websockets.connect(
                 self.ws_url,
@@ -38,7 +38,8 @@ class ElevenLabsScribeClient:
             
         try:
             payload = {
-                "audio": pcm_base64_chunk
+                "message_type": "input_audio_chunk",
+                "audio_base_64": pcm_base64_chunk
             }
             await self.ws.send(json.dumps(payload))
         except Exception as e:
@@ -53,11 +54,13 @@ class ElevenLabsScribeClient:
             async for message in self.ws:
                 data = json.loads(message)
                 
-                # Check for transcript text in the Scribe v2 payload
-                if "text" in data and data["text"]:
-                    yield data["text"]
-                elif "transcript" in data and data["transcript"]:
-                    yield data["transcript"]
+                msg_type = data.get("message_type", "")
+                
+                # Only trigger LangGraph on final or committed transcripts to avoid rate limits / spam
+                if msg_type in ("final_transcript", "committed_transcript"):
+                    text = data.get("text", "").strip()
+                    if text:
+                        yield text
                     
         except websockets.exceptions.ConnectionClosed:
             logger.info("ElevenLabs Scribe v2 connection closed.")
@@ -66,9 +69,9 @@ class ElevenLabsScribeClient:
 
     async def close(self):
         if self.ws:
-            # Send EOS (End of Stream) if the API requires it
             try:
-                await self.ws.send(json.dumps({"audio": ""})) 
+                # Optional: Send a manual commit or flush if needed by the API before closing
+                await self.ws.send(json.dumps({"message_type": "input_audio_chunk", "audio_base_64": "", "commit": True}))
                 await self.ws.close()
             except:
                 pass
