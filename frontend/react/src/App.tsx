@@ -16,7 +16,6 @@ export default function App() {
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const [testInput, setTestInput] = useState('please transfer money to a safe account immediately');
-  const wsRef = useRef<WebSocket | null>(null);
 
   const [threat, setThreat] = useState<ThreatData>({
     risk_score: 0.0,
