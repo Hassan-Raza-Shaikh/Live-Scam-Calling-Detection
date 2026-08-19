@@ -55,7 +55,7 @@ export default function App() {
     let l = buffer.length;
     const buf = new Int16Array(l);
     while (l--) {
-      buf[l] = Math.min(1, buffer[l]) * 0x7FFF;
+      buf[l] = Math.max(-1, Math.min(1, buffer[l])) * 0x7FFF;
     }
     return buf.buffer;
   };
@@ -123,7 +123,13 @@ export default function App() {
           const processor = audioContext.createScriptProcessor(4096, 1, 1);
           
           source.connect(processor);
-          processor.connect(audioContext.destination);
+          
+          // Connect to destination through a muted GainNode to prevent feedback loop
+          // (Required in some browsers for onaudioprocess to fire)
+          const gainNode = audioContext.createGain();
+          gainNode.gain.value = 0;
+          processor.connect(gainNode);
+          gainNode.connect(audioContext.destination);
           
           processor.onaudioprocess = (e) => {
             if (ws.readyState !== WebSocket.OPEN) return;
