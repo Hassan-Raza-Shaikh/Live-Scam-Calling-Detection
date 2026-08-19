@@ -3,6 +3,11 @@ from langgraph.graph import StateGraph, END
 from app.conversation.context import GraphState
 from app.preprocessing.cleaner import PIIMasker
 
+from app.detection.engine import DetectionEngine
+
+# Build the detector ONE time when the app starts
+_detection_engine = DetectionEngine()
+
 async def workflow_supervisor_node(state: GraphState) -> GraphState:
     """Entry node: Preprocesses incoming transcript and routes to supervisor workflow."""
     raw_text = state.get("latest_transcript", "")
@@ -20,36 +25,35 @@ async def memory_supervisor_node(state: GraphState) -> GraphState:
     return state
 
 async def workers_execution_node(state: GraphState) -> GraphState:
-    """Executes parallel worker detection analysis (OTP, Scam, Urgency, Org Lookup)."""
-    text = state.get("latest_transcript", "").lower()
+    """Runs the REAL 8-category scam pattern detector on the latest transcript."""
+    text = state.get("latest_transcript", "")
     worker_results = state.get("worker_results", {})
-    
-    # 1. OTP Detector Worker
-    otp_detected = any(k in text for k in ["verification code", "6-digit code", "otp", "code sent to your phone"])
-    worker_results["otp_detection_agent"] = {
-        "agent_name": "otp_detection_agent",
-        "score": 0.95 if otp_detected else 0.0,
-        "confidence": 0.9,
-        "detected_tactics": ["OTP_DEMAND"] if otp_detected else []
-    }
-    
-    # 2. Banking / Scam Detection Worker
-    scam_detected = any(k in text for k in ["fraud department", "transfer money", "safe account", "account freeze", "microsoft support"])
-    worker_results["scam_detection_agent"] = {
-        "agent_name": "scam_detection_agent",
-        "score": 0.90 if scam_detected else 0.0,
-        "confidence": 0.85,
-        "detected_tactics": ["IMPERSONATION_BANK", "FUNDS_TRANSFER_DEMAND"] if scam_detected else []
-    }
-    
-    # 3. Urgency Worker
-    urgency_detected = any(k in text for k in ["immediately", "right now", "within 5 minutes", "police warrant"])
-    worker_results["urgency_detection_agent"] = {
-        "agent_name": "urgency_detection_agent",
-        "score": 0.85 if urgency_detected else 0.1,
-        "confidence": 0.8,
-        "detected_tactics": ["HIGH_PRESSURE_URGENCY"] if urgency_detected else []
-    }
+
+    # Ask the real detection engine to check the text against all 8 scam categories
+    report = _detection_engine.detect(text)
+
+    if report.detections:
+        best_weight = max(d.weight for d in report.detections)
+        score = min(1.0, best_weight / 40.0)
+
+        tactics = sorted(set(d.intent for d in report.detections))
+        matched_words = sorted(set(d.matched_text for d in report.detections))
+
+        worker_results["pattern_detection_agent"] = {
+            "agent_name": "pattern_detection_agent",
+            "score": score,
+            "confidence": 0.9,
+            "detected_tactics": tactics,
+            "matched_phrases": matched_words
+        }
+    else:
+        worker_results["pattern_detection_agent"] = {
+            "agent_name": "pattern_detection_agent",
+            "score": 0.0,
+            "confidence": 0.9,
+            "detected_tactics": [],
+            "matched_phrases": []
+        }
 
     state["worker_results"] = worker_results
     return state
