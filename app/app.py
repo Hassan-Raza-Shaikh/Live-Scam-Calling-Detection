@@ -132,6 +132,12 @@ async def websocket_live_stream(websocket: WebSocket, session_id: str):
         manager.disconnect(session_id, websocket)
         if elevenlabs_client:
             await elevenlabs_client.close()
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        manager.disconnect(session_id, websocket)
+        if elevenlabs_client:
+            await elevenlabs_client.close()
 
 # Pydantic Schemas for Session Routes
 class StartSessionRequest(BaseModel):

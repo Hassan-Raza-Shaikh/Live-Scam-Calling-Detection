@@ -70,6 +70,14 @@ export default function App() {
     return window.btoa(binary);
   };
 
+  const copySessionId = () => {
+    if (sessionId) {
+      navigator.clipboard.writeText(sessionId);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }
+  };
+
   const startLiveSession = async () => {
     setIsLive(true);
     const newSessionId = `sess_${Math.random().toString(36).substr(2, 9)}`;
