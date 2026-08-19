@@ -88,8 +88,6 @@ export default function App() {
 
     ws.onerror = (err) => {
       console.error("WebSocket error:", err);
-      alert("Failed to connect to the backend server. Is it running?");
-      stopLiveSession();
     };
 
     ws.onclose = () => {
