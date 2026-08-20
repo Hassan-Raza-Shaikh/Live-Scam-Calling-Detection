@@ -3,10 +3,12 @@ from langgraph.graph import StateGraph, END
 from app.conversation.context import GraphState
 from app.preprocessing.cleaner import PIIMasker
 from app.detection.engine import DetectionEngine
+from app.detection.semantic_matcher import SemanticScamMatcher
 from app.risk.rule_engine import (
     EmotionalManipulationAgent,
     SocialEngineeringPredictorAgent,
-    OrganizationVerificationAgent
+    OrganizationVerificationAgent,
+    VictimComplianceAgent
 )
 from app.speakers.diarization import SpeakerDiarizer
 from app.utils.logger import get_logger
@@ -15,9 +17,11 @@ logger = get_logger(__name__)
 
 # Specialized Multi-Agent Workers & Speaker Diarizer
 _detection_engine = DetectionEngine()
+_semantic_matcher = SemanticScamMatcher()
 _emotional_agent = EmotionalManipulationAgent()
 _predictor_agent = SocialEngineeringPredictorAgent()
 _org_agent = OrganizationVerificationAgent()
+_compliance_agent = VictimComplianceAgent()
 _speaker_diarizer = SpeakerDiarizer()
 
 def generate_tailored_action(tactics: List[str], final_score: float) -> str:
@@ -26,11 +30,11 @@ def generate_tailored_action(tactics: List[str], final_score: float) -> str:
         return "DO NOT INSTALL ANYDESK OR TEAMVIEWER. Disconnect your internet and hang up immediately."
     elif any(t in tactics for t in ("OTP_REQUEST", "OTP_DEMAND", "OTP_THEFT")):
         return "NEVER SHARE 2FA OR OTP CODES. Banks and government agencies will never ask for your verification PIN."
-    elif any(t in tactics for t in ("CRYPTO_FRAUD", "BITCOIN_ATM", "investment_pig_butchering")):
+    elif any(t in tactics for t in ("CRYPTO_FRAUD", "BITCOIN_ATM", "CRYPTO_INVESTMENT", "investment_pig_butchering")):
         return "DO NOT DEPOSIT MONEY INTO BITCOIN ATMS OR KIOSKS. Legitimate companies never accept crypto payments."
     elif any(t in tactics for t in ("GOVERNMENT_IMPERSONATION", "FEAR_INTIMIDATION", "court_jury_duty")):
         return "HANG UP IMMEDIATELY. Law enforcement and the IRS do not issue warrants over the phone or demand gift cards."
-    elif any(t in tactics for t in ("FAMILY_EMERGENCY_SCAM", "ai_voice_clone_deepfake", "FAMILY_EMERGENCY_EXPLOITATION")):
+    elif any(t in tactics for t in ("FAMILY_EMERGENCY_SCAM", "FAMILY_EMERGENCY", "ai_voice_clone_deepfake", "FAMILY_EMERGENCY_EXPLOITATION")):
         return "DO NOT WIRE MONEY. Hang up and immediately call your family member on their known private phone number."
     elif any(t in tactics for t in ("BANKING_FRAUD", "ORGANIZATION_IMPERSONATION")):
         return "DO NOT MOVE FUNDS TO A 'SAFE ACCOUNT'. Hang up and dial the official number on the back of your debit card."
@@ -70,12 +74,12 @@ async def memory_supervisor_node(state: GraphState) -> GraphState:
     return state
 
 async def workers_execution_node(state: GraphState) -> GraphState:
-    """Executes multi-agent specialized workers concurrently across patterns, emotions, and predictions."""
+    """Executes multi-agent specialized workers concurrently across patterns, semantics, emotions, and predictions."""
     text = state.get("latest_transcript", "")
     transcripts = state.get("transcripts", [])
     worker_results = state.get("worker_results", {})
 
-    # Worker 1: 26-Category Pattern Detection Engine
+    # Worker 1: 18+ Category Pattern Detection Engine
     report = _detection_engine.detect(text)
     logger.info(f"[DetectionEngine] text='{text}' -> Detections found: {len(report.detections)}")
 
@@ -103,7 +107,19 @@ async def workers_execution_node(state: GraphState) -> GraphState:
             "reasoning": "No signature pattern hits."
         }
 
-    # Worker 2: Emotional & Psychological Manipulation Detector
+    # Worker 2: Semantic Vector Matcher (Catches Paraphrased Scams)
+    semantic_matches = _semantic_matcher.match(text)
+    if semantic_matches:
+        top_match = semantic_matches[0]
+        worker_results["semantic_detection_agent"] = {
+            "agent_name": "semantic_detection_agent",
+            "score": min(0.95, top_match["similarity"] * 1.3),
+            "confidence": 0.88,
+            "detected_tactics": [top_match["intent"]],
+            "reasoning": f"Semantic similarity ({top_match['similarity']:.2f}) to reference vector: '{top_match['reference_concept'][:40]}...'"
+        }
+
+    # Worker 3: Emotional & Psychological Manipulation Detector
     emo_res = _emotional_agent.analyze(text)
     worker_results["emotional_manipulation_agent"] = {
         "agent_name": emo_res.agent_name,
@@ -113,7 +129,7 @@ async def workers_execution_node(state: GraphState) -> GraphState:
         "reasoning": emo_res.reasoning
     }
 
-    # Worker 3: Social Engineering Trajectory Predictor
+    # Worker 4: Social Engineering Trajectory Predictor
     pred_res = _predictor_agent.analyze(text, transcripts)
     worker_results["social_engineering_predictor"] = {
         "agent_name": pred_res.agent_name,
@@ -123,7 +139,7 @@ async def workers_execution_node(state: GraphState) -> GraphState:
         "reasoning": pred_res.reasoning
     }
 
-    # Worker 4: Institutional & Corporate Claim Verification
+    # Worker 5: Institutional & Corporate Claim Verification
     org_res = _org_agent.analyze(text)
     worker_results["organization_verification_agent"] = {
         "agent_name": org_res.agent_name,
@@ -133,21 +149,33 @@ async def workers_execution_node(state: GraphState) -> GraphState:
         "reasoning": org_res.reasoning
     }
 
+    # Worker 6: Victim Compliance vs. Resistance Agent
+    comp_res = _compliance_agent.analyze(text)
+    worker_results["victim_compliance_agent"] = {
+        "agent_name": comp_res.agent_name,
+        "score": comp_res.score,
+        "confidence": comp_res.confidence,
+        "detected_tactics": comp_res.detected_tactics,
+        "reasoning": comp_res.reasoning,
+        "metadata": comp_res.metadata
+    }
+
     state["worker_results"] = worker_results
     return state
 
 async def consensus_supervisor_node(state: GraphState) -> GraphState:
     """Aggregates worker signals into a multi-agent consensus hypothesis."""
     results = state.get("worker_results", {})
-    all_scores = [res.get("score", 0.0) for res in results.values()]
+    all_scores = [res.get("score", 0.0) for name, res in results.items() if name != "victim_compliance_agent"]
     max_score = max(all_scores, default=0.0)
 
     tactics = []
     reasonings = []
     for name, res in results.items():
-        tactics.extend(res.get("detected_tactics", []))
+        if name != "victim_compliance_agent":
+            tactics.extend(res.get("detected_tactics", []))
         r = res.get("reasoning", "")
-        if r and "No " not in r and "Normal " not in r:
+        if r and "No " not in r and "Normal " not in r and "Neutral " not in r:
             reasonings.append(r)
 
     state["detected_tactics"] = sorted(list(set(tactics)))
@@ -157,7 +185,7 @@ async def consensus_supervisor_node(state: GraphState) -> GraphState:
 async def decision_supervisor_node(state: GraphState) -> GraphState:
     """Calculates final risk score, risk level, and generates actionable user safety guidance."""
     results = state.get("worker_results", {})
-    scores = [res.get("score", 0.0) for res in results.values() if res.get("score", 0.0) > 0.0]
+    scores = [res.get("score", 0.0) for name, res in results.items() if name != "victim_compliance_agent" and res.get("score", 0.0) > 0.0]
 
     if scores:
         max_score = max(scores)
@@ -170,13 +198,24 @@ async def decision_supervisor_node(state: GraphState) -> GraphState:
     tactics = state.get("detected_tactics", [])
     consensus = state.get("consensus_hypothesis", "")
 
-    # If the speaker is the legitimate user (Owner / Victim), do not attribute caller scam threat to them
+    # Check for Active Victim Compliance Action
+    comp_res = results.get("victim_compliance_agent", {})
+    is_complying = comp_res.get("metadata", {}).get("is_complying", False)
+
+    # If the speaker is the legitimate user (Owner / Victim)
     if speaker in ("OWNER", "VICTIM", "USER"):
-        state["overall_risk_score"] = 0.0
-        state["risk_level"] = "LOW"
-        state["explanation"] = f"🟢 User (Owner) speaking: Sentinel AI is shielding your call."
-        state["recommended_action"] = "Stay alert. Never read OTP codes, PINs, or download remote access tools for the caller."
-        return state
+        if is_complying:
+            state["overall_risk_score"] = 1.0
+            state["risk_level"] = "CRITICAL"
+            state["explanation"] = f"🚨 CRITICAL LOCKOUT: Sentinel detected you are actively complying with fraudulent instructions! ({comp_res.get('reasoning', '')})"
+            state["recommended_action"] = "STOP IMMEDIATELY! DO NOT TRANSFER FUNDS OR READ ANY CODES. HANG UP THE CALL RIGHT NOW."
+            return state
+        else:
+            state["overall_risk_score"] = 0.0
+            state["risk_level"] = "LOW"
+            state["explanation"] = f"🟢 User (Owner) speaking: Sentinel AI is shielding your call."
+            state["recommended_action"] = "Stay alert. Never read OTP codes, PINs, or download remote access tools for the caller."
+            return state
 
     state["overall_risk_score"] = round(final_score, 2)
     state["recommended_action"] = generate_tailored_action(tactics, final_score)

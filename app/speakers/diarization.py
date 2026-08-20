@@ -109,9 +109,14 @@ class SpeakerDiarizer:
         
         median_pitch = float(np.median(pitches)) if pitches else 140.0
         
-        # Formants from spectral peaks
+        # Formants & Spectral Centroid
         fft_all = np.abs(np.fft.rfft(audio[:16000], n_fft))
         freqs = np.fft.rfftfreq(n_fft, 1.0/sample_rate)
+        
+        # Spectral Centroid (timbre brightness)
+        sum_fft = np.sum(fft_all) + 1e-9
+        spectral_centroid = float(np.sum(freqs * fft_all) / sum_fft)
+        
         peaks = []
         for k in range(1, len(fft_all) - 1):
             if fft_all[k] > fft_all[k-1] and fft_all[k] > fft_all[k+1] and freqs[k] > 200:
@@ -123,7 +128,8 @@ class SpeakerDiarizer:
         return {
             'mfcc': norm_mfcc,
             'pitch': median_pitch,
-            'formants': top_formants
+            'formants': top_formants,
+            'centroid': spectral_centroid
         }
 
     def enroll_voiceprint(self, pcm_samples: np.ndarray):
@@ -159,7 +165,12 @@ class SpeakerDiarizer:
         f_diff = np.mean(np.abs(self.enrolled_biometrics['formants'] - test_bio['formants']) / (self.enrolled_biometrics['formants'] + 1e-6))
         formant_score = max(0.0, min(1.0, 1.0 - float(f_diff * 2.0)))
         
-        total_score = (0.50 * mfcc_score) + (0.30 * pitch_score) + (0.20 * formant_score)
+        # 4. Spectral Centroid Timbre Proximity
+        c1 = self.enrolled_biometrics.get('centroid', 1500.0)
+        c2 = test_bio.get('centroid', 1500.0)
+        centroid_score = max(0.0, min(1.0, 1.0 - (abs(c1 - c2) / (max(c1, c2, 1.0) * 0.5))))
+        
+        total_score = (0.45 * mfcc_score) + (0.25 * pitch_score) + (0.15 * formant_score) + (0.15 * centroid_score)
         return float(total_score)
 
     def identify_audio_speaker(self, pcm_samples: np.ndarray, threshold: float = 0.75) -> str:

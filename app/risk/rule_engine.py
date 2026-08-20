@@ -206,3 +206,53 @@ class OrganizationVerificationAgent:
             reasoning=" | ".join(notes) if notes else "No specific corporate or institutional claims detected."
         )
 
+class VictimComplianceAgent:
+    """Agent specialized in tracking victim compliance vs. resistance cues."""
+    
+    COMPLIANCE_CUES = [
+        "opening my banking app", "opening the app", "logging in right now", "logging into my bank",
+        "let me get my credit card", "let me get my card", "let me get my wallet", "getting my wallet",
+        "reading the code", "here is the code", "here is the number", "the number is",
+        "going to the atm", "driving to the bank", "buying the gift cards", "buying the card",
+        "downloading anydesk", "installing anydesk", "installing teamviewer", "downloading teamviewer",
+        "sending the wire", "transferring the money", "i will transfer", "i will send it right now"
+    ]
+    
+    RESISTANCE_CUES = [
+        "i am not giving you", "i will not share", "who is your supervisor", "what is your badge number",
+        "i am hanging up", "calling the police", "this sounds like a scam", "i will visit my local branch",
+        "let me call the bank directly", "i do not trust this"
+    ]
+    
+    def analyze(self, transcript: str) -> WorkerAnalysisResult:
+        text_lower = transcript.lower()
+        matched_compliance = [cue for cue in self.COMPLIANCE_CUES if cue in text_lower]
+        matched_resistance = [cue for cue in self.RESISTANCE_CUES if cue in text_lower]
+        
+        tactics = []
+        if matched_compliance:
+            tactics.append("VICTIM_COMPLIANCE_ACTION")
+        if matched_resistance:
+            tactics.append("VICTIM_ACTIVE_RESISTANCE")
+            
+        is_complying = len(matched_compliance) > 0
+        score = 0.98 if is_complying else 0.0
+        
+        reasoning = ""
+        if matched_compliance:
+            reasoning = f"CRITICAL: Victim is actively complying with scam directives: {matched_compliance}"
+        elif matched_resistance:
+            reasoning = f"Victim is actively resisting/questioning caller: {matched_resistance}"
+        else:
+            reasoning = "Neutral victim stance."
+            
+        return WorkerAnalysisResult(
+            agent_name="victim_compliance_agent",
+            confidence=0.95,
+            score=score,
+            detected_tactics=tactics,
+            reasoning=reasoning,
+            metadata={"is_complying": is_complying, "is_resisting": len(matched_resistance) > 0}
+        )
+
+
