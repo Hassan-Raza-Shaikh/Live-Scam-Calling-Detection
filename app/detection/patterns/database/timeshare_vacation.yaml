@@ -1,0 +1,21 @@
+intent: "timeshare_vacation"
+description: "Detects fraudulent timeshare resale brokers, Mexican resort exit fee scams, and upfront legal cancellation retainers."
+category: "timeshare_fraud"
+weight: 85
+priority: "medium"
+phrases:
+  - "buyer ready to purchase your timeshare"
+  - "corporate buyer for your resort week"
+  - "mexican tax administration fee"
+  - "timeshare contract cancellation specialist"
+  - "exit timeshare maintenance fees forever"
+  - "escrow deposit for international property sale"
+  - "timeshare legal release document"
+  - "wire Mexican notary fee"
+patterns:
+  - "buyer for your timeshare property"
+  - "pay mexican tax fee to release sale funds"
+  - "cancel your timeshare maintenance fees"
+regex:
+  - "\\b(timeshare|resort\\s+week|vacation\\s+club)\\s+(resale|buyout|exit|cancellation)\\b"
+  - "\\b(mexican|foreign)\\s+(tax|notary|escrow)\\s+fee\\b"

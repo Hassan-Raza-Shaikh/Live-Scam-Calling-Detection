@@ -1,0 +1,23 @@
+intent: "counterfeit_check_overpayment"
+description: "Detects online marketplace overpayment scams, fake cashier checks, and requests to forward excess funds to movers or couriers."
+category: "check_overpayment_fraud"
+weight: 92
+priority: "high"
+phrases:
+  - "i sent extra money for the mover"
+  - "my assistant accidentally wrote the check for 3000"
+  - "deposit the certified check and keep 100 for your trouble"
+  - "send the rest back via zelle"
+  - "cashier check has been delivered"
+  - "wire the excess funds to my freight agent"
+  - "funds will clear in 24 hours"
+  - "facebook marketplace mover fee"
+  - "craigslist buyer overpaid"
+patterns:
+  - "deposit the check and send the difference"
+  - "assistant made a mistake and sent too much"
+  - "pay my mover using zelle"
+regex:
+  - "\\b(assistant|accountant)\\s+(accidentally\\s+wrote|sent\\s+extra|overpaid)\\b"
+  - "\\b(deposit|cash)\\s+(the\\s+check|certified\\s+check)\\s+and\\s+(send|zelle|wire|forward)\\b"
+  - "\\b(mover|freight|shipper|courier)\\s+(fee|deposit|difference)\\b"

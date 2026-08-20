@@ -1,0 +1,24 @@
+intent: "court_jury_duty"
+description: "Detects fake federal court clerks, missed jury duty subpoenas, bench warrants for contempt of court, and fines payable at kiosk."
+category: "court_legal_fraud"
+weight: 95
+priority: "high"
+phrases:
+  - "missed federal jury duty"
+  - "bench warrant for contempt of court"
+  - "clerk of the district court"
+  - "judge issued an arrest citation"
+  - "failure to appear for grand jury service"
+  - "pay bond at electronic kiosk"
+  - "stay on the line while driving to courthouse"
+  - "civil contempt fine"
+  - "signature verification bond"
+  - "deputy sheriff court liaison"
+patterns:
+  - "bench warrant issued for missed jury duty"
+  - "pay contempt of court bond"
+  - "stay on line while driving to kiosk"
+regex:
+  - "\\b(missed|failed\\s+to\\s+appear\\s+for)\\s+(federal\\s+)?jury\\s+duty\\b"
+  - "\\b(bench\\s+warrant|contempt\\s+of\\s+court|subpoena\\s+citation)\\b"
+  - "\\b(pay|deposit)\\s+(the\\s+bond|citation|fine)\\s+(at\\s+kiosk|before\\s+court)\\b"

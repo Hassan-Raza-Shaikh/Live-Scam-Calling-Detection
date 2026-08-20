@@ -585,109 +585,126 @@ export default function App() {
   }, []);
 
   return (
-    <div style={{ minHeight: '100vh', backgroundColor: '#030712', color: '#f3f4f6', fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', padding: '1.5rem 2rem' }}>
-      {/* Top Header */}
-      <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem', borderBottom: '1px solid #1e293b', paddingBottom: '1rem' }}>
-        <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
-            <span style={{ fontSize: '1.6rem' }}>🛡️</span>
-            <h1 style={{ fontSize: '1.45rem', fontWeight: 800, margin: 0, background: 'linear-gradient(90deg, #38bdf8, #818cf8)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-              Sentinel AI
-            </h1>
-            <span style={{ fontSize: '0.75rem', padding: '0.2rem 0.6rem', borderRadius: '1rem', backgroundColor: '#1e293b', color: '#94a3b8', border: '1px solid #334155' }}>
-              Live Anti-Scam Shield v2.4
-            </span>
+    <div style={{ minHeight: '100vh', backgroundColor: '#090d16', color: '#f1f5f9', fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif', padding: '1.5rem 2rem' }}>
+      {/* Top Header Bar */}
+      <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem', borderBottom: '1px solid #1e293b', paddingBottom: '1.1rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+          <div style={{ width: '38px', height: '38px', borderRadius: '8px', backgroundColor: '#1e293b', border: '1px solid #334155', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+            </svg>
           </div>
-          <p style={{ margin: '0.25rem 0 0 0', fontSize: '0.82rem', color: '#64748b' }}>
-            Real-time biometric speaker verification, deep social engineering analysis & fast-path threat defense
-          </p>
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
+              <h1 style={{ fontSize: '1.35rem', fontWeight: 700, margin: 0, color: '#f8fafc', letterSpacing: '-0.02em' }}>
+                Sentinel Security
+              </h1>
+              <span style={{ fontSize: '0.72rem', padding: '0.15rem 0.55rem', borderRadius: '4px', backgroundColor: '#1e293b', color: '#94a3b8', border: '1px solid #334155', fontWeight: 600 }}>
+                Live Call Monitor
+              </span>
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem', fontSize: '0.72rem', color: isLive ? '#34d399' : '#94a3b8' }}>
+                <span style={{ width: '7px', height: '7px', borderRadius: '50%', backgroundColor: isLive ? '#10b981' : '#64748b', display: 'inline-block' }} />
+                {isLive ? 'Active Session' : 'Idle'}
+              </span>
+            </div>
+            <p style={{ margin: '0.2rem 0 0 0', fontSize: '0.8rem', color: '#64748b' }}>
+              Real-time voice biometric verification, fraud taxonomy classification, and call defense
+            </p>
+          </div>
         </div>
 
-        {/* Global Action Bar */}
+        {/* Global Controls */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
           {/* Engine Selector */}
-          <div style={{ display: 'flex', backgroundColor: '#0f172a', padding: '0.25rem', borderRadius: '0.5rem', border: '1px solid #1e293b' }}>
+          <div style={{ display: 'flex', backgroundColor: '#0f172a', padding: '0.2rem', borderRadius: '6px', border: '1px solid #1e293b' }}>
             <button
               onClick={() => setEngine('webspeech')}
               style={{
                 padding: '0.35rem 0.75rem',
-                borderRadius: '0.35rem',
+                borderRadius: '4px',
                 border: 'none',
-                fontSize: '0.78rem',
+                fontSize: '0.76rem',
                 fontWeight: 600,
                 cursor: 'pointer',
                 backgroundColor: engine === 'webspeech' ? '#2563eb' : 'transparent',
-                color: engine === 'webspeech' ? '#ffffff' : '#9ca3af',
-                transition: 'all 0.2s ease'
+                color: engine === 'webspeech' ? '#ffffff' : '#94a3b8',
+                transition: 'background 0.15s ease'
               }}
             >
-              Web Speech (Instant Local)
+              Web Speech
             </button>
             <button
               onClick={() => setEngine('scribe')}
               style={{
                 padding: '0.35rem 0.75rem',
-                borderRadius: '0.35rem',
+                borderRadius: '4px',
                 border: 'none',
-                fontSize: '0.78rem',
+                fontSize: '0.76rem',
                 fontWeight: 600,
                 cursor: 'pointer',
                 backgroundColor: engine === 'scribe' ? '#2563eb' : 'transparent',
-                color: engine === 'scribe' ? '#ffffff' : '#9ca3af',
-                transition: 'all 0.2s ease'
+                color: engine === 'scribe' ? '#ffffff' : '#94a3b8',
+                transition: 'background 0.15s ease'
               }}
             >
-              Scribe v2 (Cloud Neural)
+              Scribe v2
             </button>
           </div>
 
-          {/* Master Live Toggle Button */}
+          {/* Master Live Toggle */}
           <button
             onClick={isLive ? stopLiveSession : startLiveSession}
             style={{
-              padding: '0.65rem 1.4rem',
-              borderRadius: '0.5rem',
-              fontWeight: '700',
+              padding: '0.55rem 1.25rem',
+              borderRadius: '6px',
+              fontWeight: 600,
               cursor: 'pointer',
               border: 'none',
-              fontSize: '0.95rem',
+              fontSize: '0.88rem',
               display: 'flex',
               alignItems: 'center',
               gap: '0.5rem',
-              backgroundColor: isLive ? '#ef4444' : '#10b981',
+              backgroundColor: isLive ? '#dc2626' : '#059669',
               color: '#ffffff',
-              boxShadow: isLive ? '0 0 20px rgba(239, 68, 68, 0.45)' : '0 0 20px rgba(16, 185, 129, 0.35)',
-              transition: 'all 0.2s ease'
+              transition: 'background 0.15s ease'
             }}
           >
             {isLive ? (
               <>
-                <span style={{ width: '10px', height: '10px', borderRadius: '50%', backgroundColor: '#ffffff', display: 'inline-block', animation: 'pulse 1s infinite' }} />
-                Stop Shield
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor">
+                  <rect x="6" y="6" width="12" height="12" rx="2"/>
+                </svg>
+                Stop Monitoring
               </>
             ) : (
               <>
-                <span>🎙️</span> Start Live Call Shield
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
+                  <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+                  <line x1="12" y1="19" x2="12" y2="23"/>
+                  <line x1="8" y1="23" x2="16" y2="23"/>
+                </svg>
+                Start Live Monitoring
               </>
             )}
           </button>
         </div>
       </header>
 
-      {/* Voice Enrollment & Audio Testing Toolbar */}
+      {/* Voice Verification & Audio Configuration Section */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1.25rem' }}>
-        {/* Card 1: Voiceprint Registration & Attribution Mode */}
-        <div style={{ padding: '0.85rem 1.15rem', backgroundColor: '#0f172a', border: '1px solid #1e293b', borderRadius: '0.75rem', display: 'flex', flexDirection: 'column', gap: '0.65rem' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.5rem' }}>
+        {/* Card 1: Voice Authentication */}
+        <div style={{ padding: '1rem 1.2rem', backgroundColor: '#0f172a', border: '1px solid #1e293b', borderRadius: '8px', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '0.5rem' }}>
             <div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <span style={{ fontSize: '0.9rem', fontWeight: 600, color: '#f3f4f6' }}>👤 Multi-Biometric Voiceprint (MFCC + Pitch F0)</span>
-                <span style={{ fontSize: '0.75rem', padding: '0.15rem 0.5rem', borderRadius: '1rem', backgroundColor: isEnrolled ? 'rgba(16, 185, 129, 0.2)' : 'rgba(107, 114, 128, 0.2)', border: isEnrolled ? '1px solid #10b981' : '1px solid #6b7280', color: isEnrolled ? '#6ee7b7' : '#9ca3af', fontWeight: 600 }}>
-                  {isEnrolled ? '✅ Enrolled (Owner Active)' : '⚪ Not Enrolled'}
+                <span style={{ fontSize: '0.88rem', fontWeight: 600, color: '#f1f5f9' }}>Voice Authentication Profile</span>
+                <span style={{ fontSize: '0.72rem', padding: '0.15rem 0.5rem', borderRadius: '4px', backgroundColor: isEnrolled ? 'rgba(16, 185, 129, 0.15)' : '#1e293b', border: isEnrolled ? '1px solid #059669' : '1px solid #334155', color: isEnrolled ? '#34d399' : '#94a3b8', fontWeight: 600 }}>
+                  {isEnrolled ? 'Registered (Owner Active)' : 'Unregistered'}
                 </span>
               </div>
-              <p style={{ margin: '0.15rem 0 0 0', fontSize: '0.75rem', color: '#9ca3af' }}>
-                Register your voice. Incoming audio is matched against your vocal tract MFCCs and pitch.
+              <p style={{ margin: '0.2rem 0 0 0', fontSize: '0.76rem', color: '#64748b' }}>
+                Audio is matched against your vocal tract MFCC profile and fundamental frequency.
               </p>
             </div>
 
@@ -695,125 +712,122 @@ export default function App() {
               onClick={enrollUserVoice}
               disabled={isEnrolling}
               style={{
-                padding: '0.45rem 0.8rem',
-                borderRadius: '0.5rem',
-                backgroundColor: isEnrolling ? '#d97706' : '#2563eb',
-                color: '#ffffff',
-                border: 'none',
+                padding: '0.4rem 0.8rem',
+                borderRadius: '6px',
+                backgroundColor: isEnrolling ? '#d97706' : '#1e293b',
+                color: '#f8fafc',
+                border: '1px solid #334155',
                 fontSize: '0.78rem',
                 fontWeight: 600,
                 cursor: isEnrolling ? 'not-allowed' : 'pointer',
                 display: 'flex',
                 alignItems: 'center',
-                gap: '0.4rem',
-                boxShadow: '0 0 10px rgba(37, 99, 235, 0.3)'
+                gap: '0.4rem'
               }}
             >
-              {isEnrolling ? '⏳ Recording (3s)...' : '🎙️ Register My Voice'}
+              {isEnrolling ? 'Recording Sample (3s)...' : 'Record Voice Sample'}
             </button>
           </div>
 
-          {/* Speaker Mode Toggle Buttons */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', backgroundColor: '#030712', padding: '0.35rem', borderRadius: '0.5rem', border: '1px solid #1e293b' }}>
-            <span style={{ fontSize: '0.72rem', color: '#64748b', fontWeight: 600, marginLeft: '0.3rem' }}>MODE:</span>
+          {/* Speaker Attribution Mode */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', backgroundColor: '#020617', padding: '0.3rem', borderRadius: '6px', border: '1px solid #1e293b' }}>
+            <span style={{ fontSize: '0.7rem', color: '#64748b', fontWeight: 600, marginLeft: '0.35rem' }}>SPEAKER:</span>
             <button
               onClick={() => setSpeakerMode('AUTO')}
               style={{
                 flex: 1,
                 padding: '0.35rem 0.5rem',
-                borderRadius: '0.35rem',
+                borderRadius: '4px',
                 border: 'none',
-                fontSize: '0.75rem',
-                fontWeight: 700,
+                fontSize: '0.74rem',
+                fontWeight: 600,
                 cursor: 'pointer',
-                backgroundColor: speakerMode === 'AUTO' ? '#3b82f6' : 'transparent',
-                color: speakerMode === 'AUTO' ? '#ffffff' : '#9ca3af',
-                transition: 'all 0.15s ease'
+                backgroundColor: speakerMode === 'AUTO' ? '#2563eb' : 'transparent',
+                color: speakerMode === 'AUTO' ? '#ffffff' : '#94a3b8'
               }}
             >
-              🎯 Auto Biometric (Recommended)
+              Auto Biometrics
             </button>
             <button
               onClick={() => setSpeakerMode('OWNER')}
               style={{
                 flex: 1,
                 padding: '0.35rem 0.5rem',
-                borderRadius: '0.35rem',
+                borderRadius: '4px',
                 border: 'none',
-                fontSize: '0.75rem',
-                fontWeight: 700,
+                fontSize: '0.74rem',
+                fontWeight: 600,
                 cursor: 'pointer',
-                backgroundColor: speakerMode === 'OWNER' ? '#10b981' : 'transparent',
-                color: speakerMode === 'OWNER' ? '#ffffff' : '#9ca3af',
-                transition: 'all 0.15s ease'
+                backgroundColor: speakerMode === 'OWNER' ? '#059669' : 'transparent',
+                color: speakerMode === 'OWNER' ? '#ffffff' : '#94a3b8'
               }}
             >
-              🟢 Lock YOU (Owner)
+              Force User (You)
             </button>
             <button
               onClick={() => setSpeakerMode('CALLER')}
               style={{
                 flex: 1,
                 padding: '0.35rem 0.5rem',
-                borderRadius: '0.35rem',
+                borderRadius: '4px',
                 border: 'none',
-                fontSize: '0.75rem',
-                fontWeight: 700,
+                fontSize: '0.74rem',
+                fontWeight: 600,
                 cursor: 'pointer',
-                backgroundColor: speakerMode === 'CALLER' ? '#ef4444' : 'transparent',
-                color: speakerMode === 'CALLER' ? '#ffffff' : '#9ca3af',
-                transition: 'all 0.15s ease'
+                backgroundColor: speakerMode === 'CALLER' ? '#dc2626' : 'transparent',
+                color: speakerMode === 'CALLER' ? '#ffffff' : '#94a3b8'
               }}
             >
-              🔴 Lock CALLER (Scammer)
+              Force Caller
             </button>
           </div>
         </div>
 
-        {/* Card 2: Mic Sensitivity Booster & Audio File Testing */}
-        <div style={{ padding: '0.85rem 1.15rem', backgroundColor: '#0f172a', border: '1px solid #1e293b', borderRadius: '0.75rem', display: 'flex', flexDirection: 'column', gap: '0.65rem' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.5rem' }}>
+        {/* Card 2: Audio File Analysis & Gain Control */}
+        <div style={{ padding: '1rem 1.2rem', backgroundColor: '#0f172a', border: '1px solid #1e293b', borderRadius: '8px', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '0.5rem' }}>
             <div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <span style={{ fontSize: '0.9rem', fontWeight: 600, color: '#f3f4f6' }}>📁 Audio File & Phone Recording Test</span>
-              </div>
-              <p style={{ margin: '0.15rem 0 0 0', fontSize: '0.75rem', color: '#9ca3af' }}>
-                Upload .wav/.mp3 calls directly or boost mic sensitivity for distant audio.
+              <span style={{ fontSize: '0.88rem', fontWeight: 600, color: '#f1f5f9' }}>Audio Recording Analysis</span>
+              <p style={{ margin: '0.2rem 0 0 0', fontSize: '0.76rem', color: '#64748b' }}>
+                Upload .wav or .mp3 call recordings or adjust input gain for quiet microphones.
               </p>
             </div>
 
-            <div style={{ display: 'flex', gap: '0.4rem' }}>
-              <label
-                style={{
-                  padding: '0.45rem 0.8rem',
-                  borderRadius: '0.5rem',
-                  backgroundColor: '#4f46e5',
-                  color: '#ffffff',
-                  fontSize: '0.78rem',
-                  fontWeight: 600,
-                  cursor: isUploading ? 'not-allowed' : 'pointer',
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '0.35rem',
-                  boxShadow: '0 0 10px rgba(79, 70, 229, 0.3)'
-                }}
-              >
-                {isUploading ? '⏳ Analyzing...' : '📤 Upload Audio File'}
-                <input
-                  type="file"
-                  accept="audio/*,.wav,.mp3,.m4a"
-                  onChange={handleFileUpload}
-                  disabled={isUploading}
-                  style={{ display: 'none' }}
-                />
-              </label>
-            </div>
+            <label
+              style={{
+                padding: '0.4rem 0.8rem',
+                borderRadius: '6px',
+                backgroundColor: '#1e293b',
+                color: '#f8fafc',
+                border: '1px solid #334155',
+                fontSize: '0.78rem',
+                fontWeight: 600,
+                cursor: isUploading ? 'not-allowed' : 'pointer',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '0.4rem'
+              }}
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                <polyline points="17 8 12 3 7 8"/>
+                <line x1="12" y1="3" x2="12" y2="15"/>
+              </svg>
+              {isUploading ? 'Analyzing...' : 'Upload Call File'}
+              <input
+                type="file"
+                accept="audio/*,.wav,.mp3,.m4a"
+                onChange={handleFileUpload}
+                disabled={isUploading}
+                style={{ display: 'none' }}
+              />
+            </label>
           </div>
 
-          {/* Mic Gain Boost Slider Bar */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', backgroundColor: '#030712', padding: '0.35rem 0.75rem', borderRadius: '0.5rem', border: '1px solid #1e293b' }}>
+          {/* Gain Slider */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', backgroundColor: '#020617', padding: '0.35rem 0.75rem', borderRadius: '6px', border: '1px solid #1e293b' }}>
             <span style={{ fontSize: '0.72rem', color: '#64748b', fontWeight: 600, whiteSpace: 'nowrap' }}>
-              🔊 MIC SENSITIVITY BOOST: {micGain.toFixed(1)}x
+              INPUT GAIN: {micGain.toFixed(1)}x
             </span>
             <input
               type="range"
@@ -822,112 +836,102 @@ export default function App() {
               step="0.5"
               value={micGain}
               onChange={(e) => setMicGain(parseFloat(e.target.value))}
-              style={{ flex: 1, accentColor: '#38bdf8', cursor: 'pointer' }}
+              style={{ flex: 1, accentColor: '#2563eb', cursor: 'pointer' }}
             />
-            <span style={{ fontSize: '0.7rem', color: '#9ca3af' }}>
-              {micGain >= 3.0 ? '⚡ High (Phone Speakers)' : 'Normal'}
+            <span style={{ fontSize: '0.7rem', color: '#94a3b8' }}>
+              {micGain >= 3.0 ? 'Boosted (Phone Speakers)' : 'Standard'}
             </span>
           </div>
         </div>
       </div>
 
-      {/* Enrollment / Upload Status Notification */}
+      {/* Notifications */}
       {(enrollmentStatus || uploadFeedback) && (
-        <div style={{ padding: '0.65rem 1rem', borderRadius: '0.5rem', backgroundColor: '#1e293b', border: '1px solid #334155', color: '#38bdf8', fontSize: '0.82rem', marginBottom: '1.25rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div style={{ padding: '0.65rem 1rem', borderRadius: '6px', backgroundColor: '#0f172a', border: '1px solid #334155', color: '#38bdf8', fontSize: '0.8rem', marginBottom: '1.25rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <span>{enrollmentStatus || uploadFeedback}</span>
-          <button onClick={() => { setEnrollmentStatus(null); setUploadFeedback(null); }} style={{ background: 'none', border: 'none', color: '#9ca3af', cursor: 'pointer', fontSize: '0.9rem' }}>✕</button>
+          <button onClick={() => { setEnrollmentStatus(null); setUploadFeedback(null); }} style={{ background: 'none', border: 'none', color: '#64748b', cursor: 'pointer', fontSize: '0.85rem' }}>✕</button>
         </div>
       )}
 
-      {/* Live Mic Activity Banner when Active */}
+      {/* Live Active Bar */}
       {isLive && (
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.75rem 1.25rem', backgroundColor: '#0f172a', border: '1px solid #1e293b', borderRadius: '0.75rem', marginBottom: '1.25rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.7rem 1.25rem', backgroundColor: '#0f172a', border: '1px solid #1e293b', borderRadius: '8px', marginBottom: '1.25rem' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-            <span style={{ fontSize: '1.25rem' }}>🎙️</span>
-            <div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <span style={{ fontWeight: 600, fontSize: '0.9rem', color: '#10b981' }}>
-                  {isRecognizing ? 'Microphone Active & Listening...' : 'Connecting Audio Stream...'}
-                </span>
-                <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: isRecognizing ? '#10b981' : '#f59e0b', display: 'inline-block' }} />
-              </div>
-              <p style={{ margin: 0, fontSize: '0.75rem', color: '#9ca3af' }}>Speak into your mic or play audio recording to test real-time detection</p>
-            </div>
+            <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: isRecognizing ? '#10b981' : '#f59e0b', display: 'inline-block' }} />
+            <span style={{ fontWeight: 600, fontSize: '0.85rem', color: '#f8fafc' }}>
+              {isRecognizing ? 'Microphone Active — Listening to Live Stream' : 'Connecting Audio Stream...'}
+            </span>
           </div>
 
-          {/* Realtime Audio Volume Meter */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', width: '160px' }}>
-            <span style={{ fontSize: '0.7rem', color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Volume</span>
-            <div style={{ flex: 1, height: '8px', backgroundColor: '#1e293b', borderRadius: '4px', overflow: 'hidden' }}>
-              <div style={{ width: `${micVolume}%`, height: '100%', backgroundColor: micVolume > 60 ? '#ef4444' : micVolume > 25 ? '#10b981' : '#38bdf8', transition: 'width 0.1s ease' }} />
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', width: '150px' }}>
+            <span style={{ fontSize: '0.68rem', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Volume</span>
+            <div style={{ flex: 1, height: '6px', backgroundColor: '#1e293b', borderRadius: '3px', overflow: 'hidden' }}>
+              <div style={{ width: `${micVolume}%`, height: '100%', backgroundColor: micVolume > 60 ? '#ef4444' : '#10b981', transition: 'width 0.1s ease' }} />
             </div>
           </div>
         </div>
       )}
 
-      {/* Main Grid Layout */}
+      {/* Main Analysis Grid */}
       <div style={{ display: 'grid', gridTemplateColumns: '1.1fr 1fr', gap: '1.5rem' }}>
-        {/* Left Column: Live Audio, Speech Stream, History & Manual Inputs */}
+        {/* Left Column: Live Transcript & Timeline */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-          {/* Scam Probability Meter Card */}
-          <div style={{ padding: '1.25rem', borderRadius: '0.85rem', backgroundColor: '#0f172a', border: '1px solid #1e293b' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.65rem' }}>
-              <span style={{ fontSize: '0.875rem', color: '#9ca3af', fontWeight: 500 }}>Live Threat Score</span>
-              <span style={{ fontWeight: 800, fontSize: '1.1rem', color: threat.risk_score > 0.7 ? '#ef4444' : threat.risk_score > 0.4 ? '#f59e0b' : '#10b981' }}>
+          {/* Threat Meter Bar */}
+          <div style={{ padding: '1.1rem 1.25rem', borderRadius: '8px', backgroundColor: '#0f172a', border: '1px solid #1e293b' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+              <span style={{ fontSize: '0.82rem', color: '#94a3b8', fontWeight: 600 }}>Threat Level Assessment</span>
+              <span style={{ fontWeight: 700, fontSize: '0.95rem', color: threat.risk_score > 0.7 ? '#f43f5e' : threat.risk_score > 0.4 ? '#fbbf24' : '#34d399' }}>
                 {(threat.risk_score * 100).toFixed(0)}% [{threat.risk_level}]
               </span>
             </div>
-            <div style={{ width: '100%', height: '14px', backgroundColor: '#1e293b', borderRadius: '7px', overflow: 'hidden', border: '1px solid #334155' }}>
+            <div style={{ width: '100%', height: '8px', backgroundColor: '#1e293b', borderRadius: '4px', overflow: 'hidden' }}>
               <div
                 style={{
                   width: `${threat.risk_score * 100}%`,
                   height: '100%',
-                  backgroundColor: threat.risk_score > 0.7 ? '#ef4444' : threat.risk_score > 0.4 ? '#f59e0b' : '#10b981',
+                  backgroundColor: threat.risk_score > 0.7 ? '#f43f5e' : threat.risk_score > 0.4 ? '#fbbf24' : '#10b981',
                   transition: 'width 0.3s ease'
                 }}
               />
             </div>
           </div>
 
-          {/* Live Transcript Display */}
-          <div style={{ padding: '1.25rem', borderRadius: '0.85rem', backgroundColor: '#0f172a', border: '1px solid #1e293b' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+          {/* Active Transcription */}
+          <div style={{ padding: '1.25rem', borderRadius: '8px', backgroundColor: '#0f172a', border: '1px solid #1e293b' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.65rem' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <h3 style={{ fontSize: '0.875rem', color: '#38bdf8', margin: 0, fontWeight: 600 }}>
-                  💬 Live Multi-Speaker Transcript Stream
-                </h3>
+                <span style={{ fontSize: '0.85rem', color: '#f8fafc', fontWeight: 600 }}>Live Dialogue Stream</span>
                 {threat.speaker && (
                   <span
                     style={{
-                      fontSize: '0.72rem',
-                      fontWeight: 700,
+                      fontSize: '0.7rem',
+                      fontWeight: 600,
                       padding: '0.15rem 0.5rem',
-                      borderRadius: '1rem',
-                      backgroundColor: threat.speaker === 'OWNER' || threat.speaker === 'VICTIM' || threat.speaker === 'USER' ? 'rgba(16, 185, 129, 0.2)' : 'rgba(239, 68, 68, 0.2)',
-                      border: threat.speaker === 'OWNER' || threat.speaker === 'VICTIM' || threat.speaker === 'USER' ? '1px solid #10b981' : '1px solid #ef4444',
-                      color: threat.speaker === 'OWNER' || threat.speaker === 'VICTIM' || threat.speaker === 'USER' ? '#6ee7b7' : '#fca5a5'
+                      borderRadius: '4px',
+                      backgroundColor: threat.speaker === 'OWNER' || threat.speaker === 'VICTIM' || threat.speaker === 'USER' ? 'rgba(16, 185, 129, 0.15)' : 'rgba(239, 68, 68, 0.15)',
+                      border: threat.speaker === 'OWNER' || threat.speaker === 'VICTIM' || threat.speaker === 'USER' ? '1px solid #059669' : '1px solid #dc2626',
+                      color: threat.speaker === 'OWNER' || threat.speaker === 'VICTIM' || threat.speaker === 'USER' ? '#34d399' : '#f87171'
                     }}
                   >
-                    {threat.speaker === 'OWNER' || threat.speaker === 'VICTIM' || threat.speaker === 'USER' ? '🟢 YOU (Owner)' : '🔴 CALLER (Suspected Scammer)'}
+                    {threat.speaker === 'OWNER' || threat.speaker === 'VICTIM' || threat.speaker === 'USER' ? 'User (You)' : 'Incoming Caller'}
                   </span>
                 )}
               </div>
               {liveInterim && (
-                <span style={{ fontSize: '0.75rem', color: '#a855f7', animation: 'pulse 1s infinite' }}>
-                  ● Transcribing...
+                <span style={{ fontSize: '0.72rem', color: '#94a3b8' }}>
+                  Processing audio...
                 </span>
               )}
             </div>
 
-            {/* Active Speech Box */}
             <div
               style={{
-                padding: '1rem',
-                backgroundColor: threat.speaker === 'OWNER' || threat.speaker === 'VICTIM' || threat.speaker === 'USER' ? 'rgba(16, 185, 129, 0.08)' : 'rgba(239, 68, 68, 0.08)',
-                borderRadius: '0.5rem',
-                border: threat.speaker === 'OWNER' || threat.speaker === 'VICTIM' || threat.speaker === 'USER' ? '1px solid rgba(16, 185, 129, 0.3)' : '1px solid rgba(239, 68, 68, 0.3)',
-                minHeight: '75px',
-                fontSize: '0.95rem',
+                padding: '0.85rem 1rem',
+                backgroundColor: '#020617',
+                borderRadius: '6px',
+                border: '1px solid #1e293b',
+                minHeight: '65px',
+                fontSize: '0.88rem',
                 color: '#e2e8f0',
                 lineHeight: 1.5,
                 display: 'flex',
@@ -936,23 +940,23 @@ export default function App() {
               }}
             >
               {liveInterim ? (
-                <span style={{ color: '#c084fc', fontStyle: 'italic' }}>"{liveInterim}"</span>
+                <span style={{ color: '#93c5fd' }}>"{liveInterim}"</span>
               ) : transcriptHistory.length > 0 ? (
                 <span>"{transcriptHistory[0].text}"</span>
               ) : (
-                <span style={{ color: '#64748b' }}>
-                  {isLive ? 'Listening... say something into your mic or play audio!' : 'Shield is stopped. Click Start above.'}
+                <span style={{ color: '#475569' }}>
+                  {isLive ? 'Listening for speech...' : 'Monitoring paused. Click Start above to begin.'}
                 </span>
               )}
             </div>
 
-            {/* Transcript Log History with Green / Red Speaker Cards & Voice Match Badge */}
+            {/* Conversation Log */}
             {transcriptHistory.length > 0 && (
               <div style={{ marginTop: '1rem' }}>
-                <h4 style={{ fontSize: '0.75rem', color: '#64748b', textTransform: 'uppercase', margin: '0 0 0.5rem 0', letterSpacing: '0.05em' }}>
-                  Conversation Timeline (🟢 Owner in Green | 🔴 Caller in Red)
-                </h4>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', maxHeight: '200px', overflowY: 'auto' }}>
+                <span style={{ fontSize: '0.72rem', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.04em', display: 'block', marginBottom: '0.5rem', fontWeight: 600 }}>
+                  Turn History
+                </span>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.45rem', maxHeight: '220px', overflowY: 'auto' }}>
                   {transcriptHistory.map((item) => {
                     const isOwner = item.speaker === 'OWNER' || item.speaker === 'VICTIM' || item.speaker === 'USER';
                     return (
@@ -960,40 +964,39 @@ export default function App() {
                         key={item.id}
                         style={{
                           fontSize: '0.82rem',
-                          padding: '0.5rem 0.75rem',
-                          borderRadius: '0.45rem',
-                          backgroundColor: isOwner ? 'rgba(16, 185, 129, 0.12)' : 'rgba(239, 68, 68, 0.12)',
-                          borderLeft: isOwner ? '4px solid #10b981' : '4px solid #ef4444',
-                          border: isOwner ? '1px solid rgba(16, 185, 129, 0.25)' : '1px solid rgba(239, 68, 68, 0.25)',
-                          color: '#f3f4f6',
+                          padding: '0.55rem 0.75rem',
+                          borderRadius: '6px',
+                          backgroundColor: isOwner ? 'rgba(16, 185, 129, 0.08)' : 'rgba(239, 68, 68, 0.08)',
+                          borderLeft: isOwner ? '3px solid #10b981' : '3px solid #ef4444',
+                          border: isOwner ? '1px solid rgba(16, 185, 129, 0.2)' : '1px solid rgba(239, 68, 68, 0.2)',
+                          color: '#f8fafc',
                           display: 'flex',
                           flexDirection: 'column',
-                          gap: '0.25rem'
+                          gap: '0.2rem'
                         }}
                       >
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                            <span style={{ fontWeight: 700, fontSize: '0.75rem', color: isOwner ? '#34d399' : '#f87171' }}>
-                              {isOwner ? '🟢 [OWNER / YOU]' : '🔴 [CALLER / SCAMMER]'}
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                            <span style={{ fontWeight: 600, fontSize: '0.74rem', color: isOwner ? '#34d399' : '#f87171' }}>
+                              {isOwner ? 'User (You)' : 'Caller'}
                             </span>
                             {item.voiceMatchScore !== undefined && item.voiceMatchScore > 0 && (
                               <span
                                 style={{
-                                  fontSize: '0.68rem',
-                                  padding: '0.1rem 0.4rem',
-                                  borderRadius: '0.25rem',
-                                  backgroundColor: item.voiceMatchScore >= 75 ? 'rgba(52, 211, 153, 0.2)' : 'rgba(248, 113, 113, 0.2)',
-                                  color: item.voiceMatchScore >= 75 ? '#34d399' : '#f87171',
-                                  fontWeight: 600
+                                  fontSize: '0.66rem',
+                                  padding: '0.05rem 0.35rem',
+                                  borderRadius: '3px',
+                                  backgroundColor: '#1e293b',
+                                  color: '#94a3b8'
                                 }}
                               >
-                                {item.voiceMatchScore}% Biometric Match
+                                {item.voiceMatchScore}% Match
                               </span>
                             )}
                           </div>
-                          <span style={{ fontSize: '0.7rem', color: '#9ca3af' }}>{item.timestamp}</span>
+                          <span style={{ fontSize: '0.68rem', color: '#64748b' }}>{item.timestamp}</span>
                         </div>
-                        <div style={{ fontSize: '0.88rem', color: isOwner ? '#e6fffa' : '#ffe4e6' }}>
+                        <div style={{ fontSize: '0.84rem', color: '#e2e8f0' }}>
                           "{item.text}"
                         </div>
                       </div>
@@ -1004,85 +1007,82 @@ export default function App() {
             )}
           </div>
 
-          {/* Speaker Selection & 2-Speaker Interactive Simulation */}
-          <div style={{ padding: '1.25rem', borderRadius: '0.85rem', backgroundColor: '#0f172a', border: '1px solid #1e293b' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
-              <h3 style={{ fontSize: '0.85rem', color: '#9ca3af', margin: 0, fontWeight: 600 }}>
-                👥 Active Speaker Toggle & 2-Speaker Scam Call Demo
-              </h3>
-              
-              {/* Speaker Toggle Buttons */}
+          {/* Test Scenarios Panel */}
+          <div style={{ padding: '1.1rem 1.25rem', borderRadius: '8px', backgroundColor: '#0f172a', border: '1px solid #1e293b' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.65rem' }}>
+              <span style={{ fontSize: '0.82rem', color: '#94a3b8', fontWeight: 600 }}>
+                Simulate Dialogue Turns
+              </span>
               <div style={{ display: 'flex', gap: '0.35rem' }}>
                 <button
                   onClick={() => setSpeakerMode('CALLER')}
                   style={{
-                    padding: '0.3rem 0.6rem',
-                    borderRadius: '0.35rem',
+                    padding: '0.25rem 0.55rem',
+                    borderRadius: '4px',
                     border: 'none',
-                    fontSize: '0.72rem',
-                    fontWeight: 700,
+                    fontSize: '0.7rem',
+                    fontWeight: 600,
                     cursor: 'pointer',
-                    backgroundColor: speakerMode === 'CALLER' ? '#ef4444' : '#1e293b',
+                    backgroundColor: speakerMode === 'CALLER' ? '#dc2626' : '#1e293b',
                     color: '#ffffff'
                   }}
                 >
-                  🔴 Caller (Scammer)
+                  Caller
                 </button>
                 <button
                   onClick={() => setSpeakerMode('OWNER')}
                   style={{
-                    padding: '0.3rem 0.6rem',
-                    borderRadius: '0.35rem',
+                    padding: '0.25rem 0.55rem',
+                    borderRadius: '4px',
                     border: 'none',
-                    fontSize: '0.72rem',
-                    fontWeight: 700,
+                    fontSize: '0.7rem',
+                    fontWeight: 600,
                     cursor: 'pointer',
-                    backgroundColor: speakerMode === 'OWNER' ? '#10b981' : '#1e293b',
+                    backgroundColor: speakerMode === 'OWNER' ? '#059669' : '#1e293b',
                     color: '#ffffff'
                   }}
                 >
-                  🟢 You (Owner)
+                  You
                 </button>
               </div>
             </div>
 
-            {/* 2-Speaker Dialogue Preset Buttons */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem', marginBottom: '0.75rem' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.45rem', marginBottom: '0.65rem' }}>
               <button
                 onClick={() => sendPhraseToBackend('This is Chase Bank Fraud Department. Unauthorized transaction of $2,500 detected on your account.', 'CALLER')}
                 disabled={!isLive}
-                style={{ padding: '0.6rem 0.8rem', backgroundColor: 'rgba(239, 68, 68, 0.15)', border: '1px solid rgba(239, 68, 68, 0.4)', borderRadius: '0.5rem', color: '#fca5a5', fontSize: '0.78rem', textAlign: 'left', cursor: isLive ? 'pointer' : 'not-allowed', opacity: isLive ? 1 : 0.5, fontWeight: 600 }}
+                style={{ padding: '0.5rem 0.7rem', backgroundColor: '#1e293b', border: '1px solid #334155', borderRadius: '6px', color: '#f8fafc', fontSize: '0.76rem', textAlign: 'left', cursor: isLive ? 'pointer' : 'not-allowed', opacity: isLive ? 1 : 0.5 }}
               >
-                🔴 Caller: "Unauthorized $2,500"
+                Caller: "Unauthorized $2,500"
               </button>
               <button
                 onClick={() => sendPhraseToBackend('Wait, what unauthorized transaction? Why is my card blocked?', 'OWNER')}
                 disabled={!isLive}
-                style={{ padding: '0.6rem 0.8rem', backgroundColor: 'rgba(16, 185, 129, 0.15)', border: '1px solid rgba(16, 185, 129, 0.4)', borderRadius: '0.5rem', color: '#6ee7b7', fontSize: '0.78rem', textAlign: 'left', cursor: isLive ? 'pointer' : 'not-allowed', opacity: isLive ? 1 : 0.5, fontWeight: 600 }}
+                style={{ padding: '0.5rem 0.7rem', backgroundColor: '#1e293b', border: '1px solid #334155', borderRadius: '6px', color: '#f8fafc', fontSize: '0.76rem', textAlign: 'left', cursor: isLive ? 'pointer' : 'not-allowed', opacity: isLive ? 1 : 0.5 }}
               >
-                🟢 You: "Why is card blocked?"
+                You: "Why is card blocked?"
               </button>
               <button
                 onClick={() => sendPhraseToBackend('To cancel the charge right now, read me the 6-digit verification code sent to your phone immediately.', 'CALLER')}
                 disabled={!isLive}
-                style={{ padding: '0.6rem 0.8rem', backgroundColor: 'rgba(239, 68, 68, 0.15)', border: '1px solid rgba(239, 68, 68, 0.4)', borderRadius: '0.5rem', color: '#fca5a5', fontSize: '0.78rem', textAlign: 'left', cursor: isLive ? 'pointer' : 'not-allowed', opacity: isLive ? 1 : 0.5, fontWeight: 600 }}
+                style={{ padding: '0.5rem 0.7rem', backgroundColor: '#1e293b', border: '1px solid #334155', borderRadius: '6px', color: '#f8fafc', fontSize: '0.76rem', textAlign: 'left', cursor: isLive ? 'pointer' : 'not-allowed', opacity: isLive ? 1 : 0.5 }}
               >
-                🔴 Caller: "Read me 6-digit OTP"
+                Caller: "Read me 6-digit OTP"
               </button>
               <button
                 onClick={() => sendPhraseToBackend('My SMS says never share this code with anyone. Who is your supervisor?', 'OWNER')}
                 disabled={!isLive}
-                style={{ padding: '0.6rem 0.8rem', backgroundColor: 'rgba(16, 185, 129, 0.15)', border: '1px solid rgba(16, 185, 129, 0.4)', borderRadius: '0.5rem', color: '#6ee7b7', fontSize: '0.78rem', textAlign: 'left', cursor: isLive ? 'pointer' : 'not-allowed', opacity: isLive ? 1 : 0.5, fontWeight: 600 }}
+                style={{ padding: '0.5rem 0.7rem', backgroundColor: '#1e293b', border: '1px solid #334155', borderRadius: '6px', color: '#f8fafc', fontSize: '0.76rem', textAlign: 'left', cursor: isLive ? 'pointer' : 'not-allowed', opacity: isLive ? 1 : 0.5 }}
               >
-                🟢 You: "SMS says never share code"
+                You: "SMS says never share code"
               </button>
             </div>
 
-            {/* Custom Text Input */}
-            <div style={{ display: 'flex', gap: '0.5rem' }}>
+            {/* Custom Input */}
+            <div style={{ display: 'flex', gap: '0.45rem' }}>
               <input
                 id="testInputOverride"
-                placeholder={speakerMode === 'CALLER' ? "Type phrase as 🔴 CALLER (Scammer)..." : "Type phrase as 🟢 YOU (Owner)..."}
+                placeholder={speakerMode === 'CALLER' ? "Type test sentence as Caller..." : "Type test sentence as User..."}
                 onKeyDown={(e) => {
                   if (e.key === 'Enter') {
                     const input = e.currentTarget;
@@ -1092,7 +1092,7 @@ export default function App() {
                     }
                   }
                 }}
-                style={{ flex: 1, padding: '0.6rem 0.8rem', borderRadius: '0.5rem', border: speakerMode === 'CALLER' ? '1px solid #ef4444' : '1px solid #10b981', backgroundColor: '#030712', color: 'white', fontSize: '0.85rem' }}
+                style={{ flex: 1, padding: '0.5rem 0.75rem', borderRadius: '6px', border: '1px solid #334155', backgroundColor: '#020617', color: '#f8fafc', fontSize: '0.82rem' }}
               />
               <button
                 onClick={() => {
@@ -1104,110 +1104,117 @@ export default function App() {
                 }}
                 disabled={!isLive}
                 style={{
-                  padding: '0.6rem 1rem',
-                  backgroundColor: speakerMode === 'CALLER' ? '#ef4444' : '#10b981',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '0.5rem',
+                  padding: '0.5rem 0.85rem',
+                  backgroundColor: '#1e293b',
+                  color: '#f8fafc',
+                  border: '1px solid #334155',
+                  borderRadius: '6px',
                   fontWeight: 600,
-                  fontSize: '0.85rem',
+                  fontSize: '0.8rem',
                   cursor: isLive ? 'pointer' : 'not-allowed',
                   opacity: isLive ? 1 : 0.5
                 }}
               >
-                Send as {speakerMode === 'CALLER' ? 'Caller' : 'You'}
+                Send
               </button>
             </div>
           </div>
         </div>
 
-        {/* Right Column: Threat Assessment & Mitigations */}
+        {/* Right Column: Threat Analysis & Recommendations */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-          {/* Fast-Path Critical Alert Card */}
+          {/* Fast-Path Alert Banner */}
           {threat.fast_path_alert && (
             <div
               style={{
-                padding: '1.25rem',
-                borderRadius: '0.85rem',
-                backgroundColor: 'rgba(239, 68, 68, 0.15)',
-                border: '2px solid #ef4444',
-                color: '#fca5a5',
-                boxShadow: '0 0 25px rgba(239, 68, 68, 0.35)',
-                animation: 'pulse 1.5s infinite'
+                padding: '1rem 1.25rem',
+                borderRadius: '8px',
+                backgroundColor: '#450a0a',
+                border: '1px solid #dc2626',
+                color: '#fee2e2'
               }}
             >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 800, fontSize: '1.15rem', color: '#ef4444', marginBottom: '0.35rem' }}>
-                <span>🚨</span> FAST-PATH EMERGENCY THREAT DETECTED
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 700, fontSize: '0.95rem', color: '#fca5a5', marginBottom: '0.25rem' }}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/>
+                  <line x1="12" y1="9" x2="12" y2="13"/>
+                  <line x1="12" y1="17" x2="12.01" y2="17"/>
+                </svg>
+                CRITICAL THREAT: Fast-Path Credential Interception
               </div>
-              <div style={{ fontSize: '0.9rem', color: '#fee2e2' }}>
-                OTP / Two-Factor Authentication Theft intercepted in sub-200ms. Immediate action recommended!
+              <div style={{ fontSize: '0.82rem', color: '#fecaca' }}>
+                Unauthorized verification code or credential demand intercepted. Refuse immediately.
               </div>
             </div>
           )}
 
-          {/* Supervisor Agent Analysis Card */}
-          <div style={{ padding: '1.25rem', borderRadius: '0.85rem', backgroundColor: '#0f172a', border: '1px solid #1e293b', flex: 1 }}>
-            <h2 style={{ fontSize: '1.15rem', fontWeight: '700', marginBottom: '1rem', color: '#818cf8', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <span>🧠</span> Sentinel Supervisor Analysis
-            </h2>
+          {/* Analysis Card */}
+          <div style={{ padding: '1.25rem', borderRadius: '8px', backgroundColor: '#0f172a', border: '1px solid #1e293b', flex: 1, display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+            <div>
+              <span style={{ fontSize: '0.88rem', fontWeight: 700, color: '#f8fafc', letterSpacing: '-0.01em' }}>
+                Security Analysis & Threat Intelligence
+              </span>
+              <p style={{ margin: '0.2rem 0 0 0', fontSize: '0.76rem', color: '#64748b' }}>
+                Multi-agent heuristic evaluation across 26 fraud taxonomies
+              </p>
+            </div>
 
-            <div style={{ marginBottom: '1.25rem' }}>
-              <h3 style={{ fontSize: '0.8rem', color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.5rem' }}>
-                Detected Fraud Tactics
-              </h3>
-              <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+            <div>
+              <span style={{ fontSize: '0.72rem', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.04em', display: 'block', marginBottom: '0.45rem', fontWeight: 600 }}>
+                Detected Fraud Indicators
+              </span>
+              <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap' }}>
                 {threat.detected_tactics && threat.detected_tactics.length > 0 ? (
                   threat.detected_tactics.map((tactic, idx) => (
                     <span
                       key={idx}
                       style={{
-                        padding: '0.3rem 0.8rem',
-                        backgroundColor: 'rgba(239, 68, 68, 0.2)',
-                        border: '1px solid rgba(239, 68, 68, 0.5)',
-                        borderRadius: '1rem',
-                        fontSize: '0.82rem',
-                        fontWeight: 700,
-                        color: '#fca5a5',
-                        letterSpacing: '0.02em'
+                        padding: '0.25rem 0.65rem',
+                        backgroundColor: '#1e293b',
+                        border: '1px solid #334155',
+                        borderRadius: '4px',
+                        fontSize: '0.76rem',
+                        fontWeight: 600,
+                        color: '#f87171'
                       }}
                     >
-                      ⚡ {tactic}
+                      {tactic}
                     </span>
                   ))
                 ) : (
-                  <span style={{ fontSize: '0.85rem', color: '#6b7280' }}>No scam tactics identified yet</span>
+                  <span style={{ fontSize: '0.8rem', color: '#64748b' }}>No threat indicators identified</span>
                 )}
               </div>
             </div>
 
-            <div style={{ marginBottom: '1.25rem' }}>
-              <h3 style={{ fontSize: '0.8rem', color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.5rem' }}>
-                Reasoning & Evidence
-              </h3>
-              <p style={{ fontSize: '0.92rem', color: '#d1d5db', lineHeight: 1.5, backgroundColor: '#030712', padding: '0.85rem', borderRadius: '0.5rem', border: '1px solid #1e293b', margin: 0 }}>
-                {threat.explanation || 'Listening to conversation stream for deceptive patterns...'}
+            <div>
+              <span style={{ fontSize: '0.72rem', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.04em', display: 'block', marginBottom: '0.45rem', fontWeight: 600 }}>
+                Evidence & Findings
+              </span>
+              <p style={{ fontSize: '0.85rem', color: '#cbd5e1', lineHeight: 1.5, backgroundColor: '#020617', padding: '0.75rem 0.9rem', borderRadius: '6px', border: '1px solid #1e293b', margin: 0 }}>
+                {threat.explanation || 'Monitoring conversation stream for deceptive patterns...'}
               </p>
             </div>
 
-            <div>
-              <h3 style={{ fontSize: '0.8rem', color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.5rem' }}>
-                Recommended User Action
-              </h3>
+            <div style={{ marginTop: 'auto' }}>
+              <span style={{ fontSize: '0.72rem', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.04em', display: 'block', marginBottom: '0.45rem', fontWeight: 600 }}>
+                Recommended Action
+              </span>
               <div
                 style={{
-                  padding: '0.85rem 1rem',
-                  backgroundColor: threat.risk_score >= 0.45 ? 'rgba(239, 68, 68, 0.15)' : 'rgba(16, 185, 129, 0.1)',
-                  border: threat.risk_score >= 0.45 ? '1px solid rgba(239, 68, 68, 0.4)' : '1px solid rgba(16, 185, 129, 0.3)',
-                  borderRadius: '0.5rem'
+                  padding: '0.75rem 0.95rem',
+                  backgroundColor: threat.risk_score >= 0.45 ? 'rgba(239, 68, 68, 0.1)' : 'rgba(16, 185, 129, 0.08)',
+                  border: threat.risk_score >= 0.45 ? '1px solid rgba(239, 68, 68, 0.3)' : '1px solid rgba(16, 185, 129, 0.25)',
+                  borderRadius: '6px'
                 }}
               >
                 <p
                   style={{
-                    fontSize: '0.92rem',
+                    fontSize: '0.86rem',
                     color: threat.risk_score >= 0.45 ? '#fca5a5' : '#6ee7b7',
                     margin: 0,
-                    fontWeight: 700,
-                    lineHeight: 1.4
+                    fontWeight: 600,
+                    lineHeight: 1.45
                   }}
                 >
                   {threat.recommended_action || 'Monitoring active.'}

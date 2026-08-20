@@ -1,0 +1,25 @@
+intent: "charity_disaster_relief"
+description: "Detects fraudulent charity appeals, fake natural disaster relief funds, and high-pressure police and firefighter benevolent association donation calls."
+category: "charity_fraud"
+weight: 88
+priority: "medium"
+phrases:
+  - "police officers association donation"
+  - "firefighters benevolent fund"
+  - "fallen heroes memorial fund"
+  - "hurricane disaster emergency relief"
+  - "earthquake victim support fund"
+  - "war refugee medical fund"
+  - "can we count on a 50 dollar pledge"
+  - "envelope will be delivered to your house"
+  - "courier will pick up cash donation"
+  - "credit card charge over the phone for charity"
+  - "press 1 to donate immediately"
+patterns:
+  - "calling on behalf of the police"
+  - "donate to the firefighters fund"
+  - "emergency relief donation pledge"
+regex:
+  - "\\b(police|firefighter[s]?|sheriff[s]?|trooper[s]?)\\s+(association|fund|union|benevolent)\\b"
+  - "\\b(disaster|hurricane|wildfire|earthquake|refugee)\\s+(relief|fund|donation)\\b"
+  - "\\b(pledge|donate|donation)\\s+(\\$?\\d+|over\\s+the\\s+phone)\\b"

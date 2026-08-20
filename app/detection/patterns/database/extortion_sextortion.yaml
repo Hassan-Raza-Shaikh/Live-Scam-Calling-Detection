@@ -1,0 +1,25 @@
+intent: "extortion_sextortion"
+description: "Detects blackmails, Pegasus spyware malware claims, webcam recording threats, and Bitcoin ransom demands within 24 hours."
+category: "extortion_blackmail"
+weight: 95
+priority: "high"
+phrases:
+  - "i infected your device with pegasus"
+  - "recorded you through your webcam"
+  - "have split screen video of you"
+  - "send to all your contacts on facebook"
+  - "pay bitcoin to this wallet in 24 hours"
+  - "timer has started"
+  - "your reputation will be ruined"
+  - "i have your password"
+  - "dont try to contact the police"
+  - "trojan virus on adult website"
+patterns:
+  - "recorded your webcam footage"
+  - "pay bitcoin or i send video to friends"
+  - "i have access to your contacts"
+regex:
+  - "\\b(pegasus|trojan|malware|rat)\\s+(on\\s+your\\s+device|installed)\\b"
+  - "\\b(recorded|footage)\\s+(from|through)\\s+(your\\s+webcam|camera)\\b"
+  - "\\b(send|forward|leak)\\s+(to\\s+all\\s+your\\s+contacts|family|friends|facebook)\\b"
+  - "\\b(pay|transfer)\\s+(\\$?\\d+|bitcoin|btc)\\s+within\\s+\\d+\\s*(hours|hrs)\\b"

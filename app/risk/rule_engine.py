@@ -31,27 +31,32 @@ class EmotionalManipulationAgent:
         "arrest warrant", "warrant for your arrest", "sheriff", "police department", 
         "jail", "prison", "lawsuit", "legal charges", "assets will be frozen", 
         "bank account will be suspended", "deportation", "federal crime", "subpoena",
-        "court summons", "asset seizure", "illegal package", "border patrol", "felony charges"
+        "court summons", "asset seizure", "illegal package", "border patrol", "felony charges",
+        "bench warrant", "contempt of court", "grand jury citation", "police outside your door",
+        "webcam footage", "pegasus spyware", "leak your video", "ruin your reputation"
     ]
     
     ISOLATION_SECRECY = [
         "do not tell anyone", "do not talk to the bank", "do not hang up", 
         "stay on the line", "keep this between us", "strictly confidential", 
         "undercover investigation", "do not tell your family", "do not tell your spouse",
-        "do not tell the teller", "do not disconnect", "keep the line open"
+        "do not tell the teller", "do not disconnect", "keep the line open",
+        "stay on the line while driving", "leave the room", "confidential executive wire"
     ]
     
     EMERGENCY_SYMPATHY = [
         "hospital", "car accident", "bail money", "in jail", "grandson", 
         "granddaughter", "kidnapped", "emergency funds", "please help me grandma",
         "please help me grandpa", "need money right now for surgery", "lawyer needs cash",
-        "public defender wire"
+        "public defender wire", "in the back of the van", "they have your daughter",
+        "deployed peacekeeper", "oil rig surgery"
     ]
     
     PRESSURE_URGENCY = [
-        "within 1 hour", "within 30 minutes", "within 10 minutes", "immediately", "right now", 
-        "final chance", "before it is too late", "last warning", "officer is on the way",
-        "power cut off", "service disconnection", "final shutoff notice"
+        "within 1 hour", "within 30 minutes", "within 10 minutes", "in 2 minutes", "in 5 minutes",
+        "immediately", "right now", "final chance", "before it is too late", "last warning", 
+        "officer is on the way", "power cut off", "service disconnection", "final shutoff notice",
+        "sim card deactivation", "medicare open enrollment deadline today", "timer has started"
     ]
     
     def analyze(self, transcript: str) -> WorkerAnalysisResult:
@@ -74,25 +79,25 @@ class EmotionalManipulationAgent:
             
         total_hits = len(matched_fear) + len(matched_isolation) + len(matched_sympathy) + len(matched_pressure)
         if total_hits >= 2:
-            score = 0.92
+            score = 0.95
         elif total_hits == 1:
-            score = 0.78
+            score = 0.80
         else:
             score = 0.0
             
         reasoning_parts = []
         if matched_fear:
-            reasoning_parts.append(f"Fear/Arrest intimidation: {matched_fear}")
+            reasoning_parts.append(f"Fear/Arrest/Blackmail intimidation: {matched_fear}")
         if matched_isolation:
             reasoning_parts.append(f"Isolation/Secrecy tactics: {matched_isolation}")
         if matched_sympathy:
-            reasoning_parts.append(f"Family/Emergency exploitation: {matched_sympathy}")
+            reasoning_parts.append(f"Family/Kidnapping emergency exploitation: {matched_sympathy}")
         if matched_pressure:
             reasoning_parts.append(f"High-pressure artificial urgency: {matched_pressure}")
             
         return WorkerAnalysisResult(
             agent_name="emotional_manipulation_agent",
-            confidence=0.90,
+            confidence=0.92,
             score=score,
             detected_tactics=tactics,
             reasoning="; ".join(reasoning_parts) if reasoning_parts else "No psychological or emotional traps detected."
@@ -103,11 +108,14 @@ class SocialEngineeringPredictorAgent:
     
     AUTHORITY_TRAPS = [
         "federal officer", "badge number", "case number", "investigator", "agent id",
-        "fraud division", "senior analyst", "customs officer", "department of justice"
+        "fraud division", "senior analyst", "customs officer", "department of justice",
+        "district court clerk", "deputy sheriff", "irs criminal investigation", "ftc investigator",
+        "medicare compliance officer", "verizon security", "att fraud division"
     ]
     PAYMENT_TRAPS = [
-        "gift card", "target card", "apple card", "crypto", "bitcoin atm", "wire transfer",
-        "cash in envelope", "greendot", "moneypak", "usdt", "safe account", "zelle", "venmo"
+        "gift card", "target card", "apple card", "steam card", "crypto", "bitcoin atm", "bitcoin kiosk",
+        "wire transfer", "cash in envelope", "greendot", "moneypak", "usdt", "safe account", "zelle", "venmo",
+        "cashier check", "certified check mover", "western union", "moneygram"
     ]
     
     def analyze(self, transcript: str, history: List[Dict[str, Any]] = None) -> WorkerAnalysisResult:
@@ -126,11 +134,11 @@ class SocialEngineeringPredictorAgent:
             tactics.append("UNTRACEABLE_PAYMENT_DEMAND")
             predictions.append("Caller is attempting to redirect funds into untraceable payment channels")
             
-        score = 0.90 if (matched_auth and matched_pay) else (0.80 if matched_pay else (0.65 if matched_auth else 0.0))
+        score = 0.95 if (matched_auth and matched_pay) else (0.85 if matched_pay else (0.70 if matched_auth else 0.0))
         
         return WorkerAnalysisResult(
             agent_name="social_engineering_predictor",
-            confidence=0.88,
+            confidence=0.90,
             score=score,
             detected_tactics=tactics,
             reasoning=" | ".join(predictions) if predictions else "Normal conversational flow."
@@ -144,19 +152,57 @@ class ScamDetectionAgent:
         "account freeze", "microsoft support", "unauthorized charge",
         "unusual activity", "security verification", "confirm your name",
         "anydesk", "teamviewer", "eventvwr", "publishers clearing house",
-        "bitcoin atm", "wire money", "zelle payment", "parcel seized"
+        "bitcoin atm", "wire money", "zelle payment", "parcel seized",
+        "pig butchering", "guaranteed returns", "task optimization",
+        "medicare card replacement", "sim swap", "port out pin", "overpaid check"
     ]
     
     def analyze(self, transcript: str) -> WorkerAnalysisResult:
         text_lower = transcript.lower()
         matched = [p for p in self.PATTERNS if p in text_lower]
-        score = 0.88 if len(matched) > 0 else 0.0
+        score = 0.90 if len(matched) > 0 else 0.0
         
         return WorkerAnalysisResult(
             agent_name="scam_detection_agent",
-            confidence=0.85,
+            confidence=0.88,
             score=score,
             detected_tactics=["SCAM_TAXONOMY_MATCH"] if len(matched) > 0 else [],
             reasoning=f"Matched scam patterns: {matched}" if matched else "No scam patterns identified."
+        )
+
+class OrganizationVerificationAgent:
+    """Agent that identifies claimed organizations and verifies official security protocols."""
+    
+    ORGANIZATIONS = {
+        "irs": "Internal Revenue Service - Never demands immediate phone payment or gift cards.",
+        "fbi": "Federal Bureau of Investigation - Does not call citizens requesting fund transfers.",
+        "social security": "Social Security Administration - Never threatens to suspend SSN over the phone.",
+        "amazon": "Amazon Customer Support - Never asks users to install remote desktop apps.",
+        "microsoft": "Microsoft Technical Support - Does not make unsolicited calls about computer viruses.",
+        "apple": "Apple Support - Never asks for Apple Gift Card numbers to unblock iCloud.",
+        "chase": "Chase Bank - Will never ask for your PIN, full card number, or OTP over the phone.",
+        "bank of america": "Bank of America - Fraud department will never ask for one-time passcodes.",
+        "wells fargo": "Wells Fargo - Never asks customers to transfer money to a 'safe holding account'.",
+        "usps": "US Postal Service - Does not ask for credit card payment for redelivery via text or call.",
+        "medicare": "Medicare - Never calls requesting your card number for a 'new chip card'."
+    }
+    
+    def analyze(self, transcript: str) -> WorkerAnalysisResult:
+        text_lower = transcript.lower()
+        matched_orgs = [org for org in self.ORGANIZATIONS if org in text_lower]
+        
+        tactics = []
+        notes = []
+        if matched_orgs:
+            tactics.append("ORGANIZATION_IMPERSONATION")
+            for org in matched_orgs:
+                notes.append(f"Claimed entity: '{org.upper()}' ({self.ORGANIZATIONS[org]})")
+                
+        return WorkerAnalysisResult(
+            agent_name="organization_verification_agent",
+            confidence=0.92,
+            score=0.85 if matched_orgs else 0.0,
+            detected_tactics=tactics,
+            reasoning=" | ".join(notes) if notes else "No specific corporate or institutional claims detected."
         )
 

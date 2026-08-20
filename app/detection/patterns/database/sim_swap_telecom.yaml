@@ -1,0 +1,27 @@
+intent: "sim_swap_telecom"
+description: "Detects unauthorized SIM swap, carrier port-out authorization requests, eSIM activation QR codes, and fake cellular network upgrades."
+category: "telecom_fraud"
+weight: 95
+priority: "high"
+phrases:
+  - "sim card replacement"
+  - "port out pin number"
+  - "transfer phone number to new sim"
+  - "carrier account transfer"
+  - "verizon customer security"
+  - "att technical service"
+  - "t-mobile network upgrade"
+  - "esim qr code scan"
+  - "5g tower maintenance"
+  - "sim card deactivation notice"
+  - "confirm carrier pin"
+  - "cellular account takeover"
+patterns:
+  - "read me the port out pin"
+  - "scan this esim activation code"
+  - "your sim card will be deactivated"
+  - "transfer your number to new carrier"
+regex:
+  - "\\b(sim\\s+swap|sim\\s+card\\s+transfer|port[- ]out\\s+pin)\\b"
+  - "\\b(verizon|at&t|att|t[- ]mobile|vodafone|t\\s+mobile)\\s+(security|fraud|support)\\b"
+  - "\\b(esim|e-sim)\\s+(activation|qr\\s+code|transfer)\\b"

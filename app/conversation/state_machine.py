@@ -3,7 +3,11 @@ from langgraph.graph import StateGraph, END
 from app.conversation.context import GraphState
 from app.preprocessing.cleaner import PIIMasker
 from app.detection.engine import DetectionEngine
-from app.risk.rule_engine import EmotionalManipulationAgent, SocialEngineeringPredictorAgent
+from app.risk.rule_engine import (
+    EmotionalManipulationAgent,
+    SocialEngineeringPredictorAgent,
+    OrganizationVerificationAgent
+)
 from app.speakers.diarization import SpeakerDiarizer
 from app.utils.logger import get_logger
 
@@ -13,7 +17,33 @@ logger = get_logger(__name__)
 _detection_engine = DetectionEngine()
 _emotional_agent = EmotionalManipulationAgent()
 _predictor_agent = SocialEngineeringPredictorAgent()
+_org_agent = OrganizationVerificationAgent()
 _speaker_diarizer = SpeakerDiarizer()
+
+def generate_tailored_action(tactics: List[str], final_score: float) -> str:
+    """Produces precise, life-saving counter-measures based on active scam tactics."""
+    if "REMOTE_ACCESS" in tactics:
+        return "DO NOT INSTALL ANYDESK OR TEAMVIEWER. Disconnect your internet and hang up immediately."
+    elif any(t in tactics for t in ("OTP_REQUEST", "OTP_DEMAND", "OTP_THEFT")):
+        return "NEVER SHARE 2FA OR OTP CODES. Banks and government agencies will never ask for your verification PIN."
+    elif any(t in tactics for t in ("CRYPTO_FRAUD", "BITCOIN_ATM", "investment_pig_butchering")):
+        return "DO NOT DEPOSIT MONEY INTO BITCOIN ATMS OR KIOSKS. Legitimate companies never accept crypto payments."
+    elif any(t in tactics for t in ("GOVERNMENT_IMPERSONATION", "FEAR_INTIMIDATION", "court_jury_duty")):
+        return "HANG UP IMMEDIATELY. Law enforcement and the IRS do not issue warrants over the phone or demand gift cards."
+    elif any(t in tactics for t in ("FAMILY_EMERGENCY_SCAM", "ai_voice_clone_deepfake", "FAMILY_EMERGENCY_EXPLOITATION")):
+        return "DO NOT WIRE MONEY. Hang up and immediately call your family member on their known private phone number."
+    elif any(t in tactics for t in ("BANKING_FRAUD", "ORGANIZATION_IMPERSONATION")):
+        return "DO NOT MOVE FUNDS TO A 'SAFE ACCOUNT'. Hang up and dial the official number on the back of your debit card."
+    elif "counterfeit_check_overpayment" in tactics:
+        return "DO NOT FORWARD CHECK MONEY OR PAY MOVERS. The check is counterfeit and will bounce in a few days."
+    elif "extortion_sextortion" in tactics:
+        return "DO NOT PAY RANSOM. Scammers send mass automated emails claiming malware. Report to ic3.gov."
+    elif final_score >= 0.75:
+        return "DO NOT SHARE CODES OR TRANSFER MONEY. HANG UP IMMEDIATELY AND CALL OFFICIAL BANK NUMBER."
+    elif final_score >= 0.45:
+        return "Verify caller identity before sharing any personal or financial information."
+    else:
+        return "Monitoring active. Speak normally into your microphone."
 
 async def workflow_supervisor_node(state: GraphState) -> GraphState:
     """Entry node: Preprocesses incoming transcript, determines speaker role, and routes to supervisor workflow."""
@@ -45,7 +75,7 @@ async def workers_execution_node(state: GraphState) -> GraphState:
     transcripts = state.get("transcripts", [])
     worker_results = state.get("worker_results", {})
 
-    # Worker 1: 8-Category Pattern Detection Engine
+    # Worker 1: 26-Category Pattern Detection Engine
     report = _detection_engine.detect(text)
     logger.info(f"[DetectionEngine] text='{text}' -> Detections found: {len(report.detections)}")
 
@@ -58,7 +88,7 @@ async def workers_execution_node(state: GraphState) -> GraphState:
         worker_results["pattern_detection_agent"] = {
             "agent_name": "pattern_detection_agent",
             "score": score,
-            "confidence": 0.9,
+            "confidence": 0.92,
             "detected_tactics": tactics,
             "matched_phrases": matched_words,
             "reasoning": f"Identified signature phrases: {matched_words[:3]}"
@@ -91,6 +121,16 @@ async def workers_execution_node(state: GraphState) -> GraphState:
         "confidence": pred_res.confidence,
         "detected_tactics": pred_res.detected_tactics,
         "reasoning": pred_res.reasoning
+    }
+
+    # Worker 4: Institutional & Corporate Claim Verification
+    org_res = _org_agent.analyze(text)
+    worker_results["organization_verification_agent"] = {
+        "agent_name": org_res.agent_name,
+        "score": org_res.score,
+        "confidence": org_res.confidence,
+        "detected_tactics": org_res.detected_tactics,
+        "reasoning": org_res.reasoning
     }
 
     state["worker_results"] = worker_results
@@ -127,7 +167,7 @@ async def decision_supervisor_node(state: GraphState) -> GraphState:
         final_score = 0.0
 
     speaker = state.get("speaker", "CALLER")
-    tactics_str = ", ".join(state.get("detected_tactics", [])) or "none"
+    tactics = state.get("detected_tactics", [])
     consensus = state.get("consensus_hypothesis", "")
 
     # If the speaker is the legitimate user (Owner / Victim), do not attribute caller scam threat to them
@@ -139,19 +179,17 @@ async def decision_supervisor_node(state: GraphState) -> GraphState:
         return state
 
     state["overall_risk_score"] = round(final_score, 2)
+    state["recommended_action"] = generate_tailored_action(tactics, final_score)
 
     if final_score >= 0.75:
         state["risk_level"] = "CRITICAL" if final_score >= 0.90 else "HIGH"
         state["explanation"] = f"Multi-Agent Threat Alert: {consensus}"
-        state["recommended_action"] = "DO NOT SHARE CODES OR TRANSFER MONEY. HANG UP IMMEDIATELY AND CALL OFFICIAL BANK NUMBER."
     elif final_score >= 0.45:
         state["risk_level"] = "MEDIUM"
         state["explanation"] = f"Suspicious Activity Detected: {consensus}"
-        state["recommended_action"] = "Verify caller identity before sharing any personal or financial information."
     else:
         state["risk_level"] = "LOW"
         state["explanation"] = "No scam indicators or psychological manipulation currently detected."
-        state["recommended_action"] = "Monitoring active. Speak normally into your microphone."
 
     return state
 

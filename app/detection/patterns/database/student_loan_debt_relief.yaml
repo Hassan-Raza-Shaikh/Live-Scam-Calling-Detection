@@ -1,0 +1,24 @@
+intent: "student_loan_debt_relief"
+description: "Detects fraudulent student loan forgiveness programs, fake debt elimination services, and upfront fee debt consolidation scams."
+category: "loan_debt_fraud"
+weight: 90
+priority: "high"
+phrases:
+  - "student loan forgiveness deadline"
+  - "biden loan cancellation program"
+  - "complete federal debt elimination"
+  - "immediate loan forbearance application"
+  - "pre approved for loan discharge"
+  - "processing fee for loan forgiveness"
+  - "consolidate credit card debt with zero interest"
+  - "department of education authorized servicer"
+  - "confirm fsaid login credentials"
+  - "pay upfront fee to lower monthly payment"
+patterns:
+  - "your student loans qualify for complete forgiveness"
+  - "deadline to apply for federal debt relief"
+  - "give me your student aid login"
+regex:
+  - "\\b(student\\s+loan|federal\\s+student\\s+debt)\\s+(forgiveness|discharge|cancellation)\\b"
+  - "\\b(biden|federal)\\s+(debt\\s+relief|forgiveness\\s+act)\\b"
+  - "\\b(fsaid|studentaid\\.gov)\\s+(login|password|credentials)\\b"

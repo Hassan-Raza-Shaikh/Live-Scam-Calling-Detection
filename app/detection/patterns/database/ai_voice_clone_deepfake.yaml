@@ -1,0 +1,23 @@
+intent: "ai_voice_clone_deepfake"
+description: "Detects AI voice clone extortion, deepfake executive wire requests, urgent kidnapped family voice simulations, and emergency ransoms."
+category: "ai_deepfake_fraud"
+weight: 98
+priority: "high"
+phrases:
+  - "i have your daughter in the back of my van"
+  - "mom please help me they have me"
+  - "dad they are going to hurt me please send money"
+  - "confidential executive acquisition wire"
+  - "ceo urgent wire transfer for acquisition"
+  - "do not contact other board members"
+  - "wire 50000 right now to release your child"
+  - "i can hear your child crying"
+  - "send bitcoin or she won't come home"
+patterns:
+  - "mom help me they took me"
+  - "wire money immediately to release your child"
+  - "confidential ceo wire instruction"
+regex:
+  - "\\b(mom|dad|grandma|grandpa)\\s+(help\\s+me|they\\s+took\\s+me|kidnapped|please\\s+send\\s+money)\\b"
+  - "\\b(in\\s+the\\s+back\\s+of\\s+the\\s+van|release\\s+your\\s+(child|daughter|son))\\b"
+  - "\\b(ceo|executive|board)\\s+(confidential|urgent)\\s+(acquisition|wire)\\b"

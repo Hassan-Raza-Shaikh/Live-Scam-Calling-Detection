@@ -1,0 +1,24 @@
+intent: "real_estate_rental"
+description: "Detects fake rental property listings, out-of-country landlords requesting security deposits before viewing, and lockbox access fee scams."
+category: "real_estate_fraud"
+weight: 88
+priority: "high"
+phrases:
+  - "currently out of the country on mission"
+  - "keys will be mailed to you"
+  - "wire deposit before viewing apartment"
+  - "zelle first month rent to hold unit"
+  - "lockbox code access deposit"
+  - "application fee via apple pay"
+  - "drive by and look through the windows"
+  - "low rent because god told me to help"
+  - "missionary work in west africa"
+  - "property manager will courier keys"
+patterns:
+  - "wire deposit before you see inside"
+  - "send deposit via zelle to reserve"
+  - "out of town cannot meet in person"
+regex:
+  - "\\b(out\\s+of\\s+the\\s+country|missionary\\s+work|relocated\\s+for\\s+work)\\b"
+  - "\\b(wire|zelle|venmo|cashapp)\\s+(the\\s+deposit|first\\s+month|holding\\s+fee)\\b"
+  - "\\b(mail|courier|fedex)\\s+(the\\s+keys|the\\s+lease)\\s+after\\s+payment\\b"

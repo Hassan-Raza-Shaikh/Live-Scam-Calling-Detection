@@ -1,0 +1,24 @@
+intent: "auto_warranty_insurance"
+description: "Detects robocalls and fraudulent sales representatives claiming vehicle factory warranty is expiring or auto insurance policy has lapsed."
+category: "warranty_fraud"
+weight: 85
+priority: "medium"
+phrases:
+  - "vehicle factory warranty is expiring"
+  - "final courtesy call before file is closed"
+  - "extend your auto warranty"
+  - "vehicle service contract division"
+  - "bumper to bumper coverage renewal"
+  - "press 1 to speak with warranty specialist"
+  - "auto protection center"
+  - "engine and transmission coverage"
+  - "confirm your vehicle year make and model"
+  - "credit card payment for warranty activation"
+patterns:
+  - "calling about your vehicle warranty"
+  - "your car warranty has expired"
+  - "final notice to renew coverage"
+regex:
+  - "\\b(vehicle|car|auto)\\s+(warranty|service\\s+contract|protection\\s+plan)\\b"
+  - "\\b(final\\s+courtesy\\s+call|file\\s+is\\s+about\\s+to\\s+close)\\b"
+  - "\\b(bumper[- ]to[- ]bumper|powertrain|drivetrain)\\s+(coverage|renewal)\\b"
