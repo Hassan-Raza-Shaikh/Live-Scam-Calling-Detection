@@ -1,0 +1,29 @@
+intent: FAMILY_EMERGENCY_SCAM
+description: Grandparent scam or fake kidnapping/accident bail emergency exploitation.
+category: FamilyEmergency
+weight: 38
+priority: high
+phrases:
+- grandma it is me please help
+- grandpa i am in jail in mexico
+- i got into a terrible car accident
+- i need bail money immediately
+- the lawyer says i need cash today
+- please do not tell my parents
+- please do not tell mom and dad
+- public defender needs wire transfer
+- in hospital for emergency surgery
+- arrested for dui bail bond
+patterns:
+- grandma * help
+- grandpa * jail
+- car accident * bail
+- do not tell * parents
+- bail * immediately
+- hospital * surgery
+regex:
+- \b(grandma|grandpa|in jail|car accident|bail money|bail bond|public defender|emergency
+  surgery)\b
+future:
+  enable_fuzzy: true
+  enable_embeddings: false

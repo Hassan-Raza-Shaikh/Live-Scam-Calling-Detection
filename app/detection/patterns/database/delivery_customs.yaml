@@ -1,0 +1,29 @@
+intent: DELIVERY_CUSTOMS_SCAM
+description: Fake courier package delivery failure, customs duties, or contraband
+  seizure.
+category: Delivery
+weight: 35
+priority: high
+phrases:
+- usps package held
+- fedex failed delivery attempt
+- dhl customs clearance fee
+- unpaid shipping redelivery fee
+- package seized by customs
+- illegal contraband found in your parcel
+- customs duty payment required
+- parcel tracking alert
+- update your delivery address and pay fee
+- border control intercepted package in your name
+patterns:
+- usps * held
+- fedex * delivery
+- dhl * customs
+- package * seized
+- customs * fee
+- contraband * parcel
+regex:
+- \b(usps|fedex|dhl|customs|customs duty|redelivery fee|parcel seized|contraband)\b
+future:
+  enable_fuzzy: true
+  enable_embeddings: false

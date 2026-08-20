@@ -1,35 +1,41 @@
 intent: OTP_REQUEST
-description: Requests for verification codes or one-time passwords.
-category: Banking
+description: Demanding two-factor codes, OTP verification digits, PINs, or SMS passwords.
+category: Authentication
 weight: 40
 priority: high
 phrases:
-  - otp
-  - one time password
-  - one time passcode
-  - verification code
-  - authentication code
-  - sms code
-  - 6-digit code
-  - six digit code
-  - security code
-  - pass code
-  - passcode
-  - confirm the code
-  - read back the code
-  - share the code
-  - give me the code
+- verification code
+- one-time password
+- one time password
+- otp code
+- otp
+- 6-digit code
+- six digit code
+- read me the code
+- confirm the code sent to your phone
+- sms authorization code
+- security pin
+- pin number
+- enter your passcode
+- do not read this to anyone except me
+- read the text message digits
+- authentication code
+- two factor code
+- 2fa code
+- google authenticator code
+- bank verification code
+- passcode on your screen
+- mobile confirmation code
 patterns:
-  - tell me * code
-  - read * code
-  - share * code
-  - what code did you receive
-  - sent * code
-  - received * code
-  - digit * code
+- verification code * phone
+- read me the * code
+- send you a * digit code
+- sms * code
+- one-time * password
+- confirm the * digit
+- read back the * numbers
 regex:
-  - "\\b(otp|passcode|pass code|one-time password|verification code|\\d{6})\\b"
+- \b(otp|verification code|one-time password|passcode|6-digit|pin number|2fa|authenticator)\b
 future:
   enable_fuzzy: true
   enable_embeddings: false
-

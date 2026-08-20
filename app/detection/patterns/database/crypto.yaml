@@ -1,18 +1,34 @@
-intent: CRYPTO_SCAM
-description: Cryptocurrency fraud involving wallet deposits, bitcoin purchases, or keys.
-category: Financial
-weight: 35
+intent: CRYPTO_FRAUD
+description: Demanding payments via Bitcoin ATM, crypto transfer, or untraceable vouchers.
+category: Crypto
+weight: 38
 priority: high
 phrases:
-  - buy bitcoin
-  - transfer to crypto wallet
-  - ledger verification
-  - deposit cryptocurrency
+- bitcoin atm
+- crypto kiosk
+- deposit cash into bitcoin machine
+- send usdt
+- crypto wallet address
+- scan this qr code at the machine
+- convert cash to crypto
+- buy bitcoin to protect your assets
+- federal crypto depository
+- binance secure wallet
+- coinbase account lock
+- transfer ethereum
+- trust wallet deposit
+- liquidity mining pool
+- untraceable cryptocurrency voucher
 patterns:
-  - send * bitcoin
-  - transfer * wallet
+- bitcoin * atm
+- crypto * machine
+- deposit * crypto
+- wallet * address
+- scan * qr code
+- buy * bitcoin
+- send * usdt
 regex:
-  - "\\b(bitcoin|ethereum|crypto|coinbase|binance)\\b"
+- \b(bitcoin|crypto|usdt|ethereum|binance|coinbase|crypto atm|wallet address)\b
 future:
   enable_fuzzy: true
   enable_embeddings: false

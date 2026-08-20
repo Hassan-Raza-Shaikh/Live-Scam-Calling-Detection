@@ -1,30 +1,36 @@
-intent: URGENCY
-description: Tactics that pressure the victim to act immediately to prevent loss or legal action.
-category: Urgency
-weight: 25
+intent: HIGH_PRESSURE_URGENCY
+description: Applying extreme time pressure, threats of immediate arrest, or forbidding
+  hanging up.
+category: Psychological
+weight: 35
 priority: high
 phrases:
-  - act now
-  - immediately
-  - do not hang up
-  - final warning
-  - within 24 hours
-  - right now
-  - urgent matter
-  - time sensitive
-  - before it is too late
-  - do not disconnect
-  - stay on the line
-  - straight away
+- do not hang up
+- stay on the line
+- if you hang up police will arrive
+- within 10 minutes
+- within 30 minutes
+- immediately or you will be arrested
+- right now this second
+- final warning before warrant execution
+- strictly confidential
+- do not tell your bank teller
+- do not tell your family
+- officers are outside your house
+- time is running out
+- last chance to resolve this peacefully
+- do not disconnect this call
 patterns:
-  - do this * immediately
-  - you must * now
-  - act * right now
-  - transfer * right now
-  - call * immediately
+- do not * hang up
+- stay on * line
+- within * minutes
+- arrest * immediately
+- final * warning
+- do not tell * teller
+- strictly * confidential
 regex:
-  - "\\b(hurry|urgent|immediate|fast|instantly|emergency)\\b"
+- \b(immediately|right now|do not hang up|stay on the line|within 30 minutes|final
+  warning|confidential)\b
 future:
   enable_fuzzy: true
   enable_embeddings: false
-

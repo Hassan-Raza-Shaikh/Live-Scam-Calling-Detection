@@ -1,0 +1,28 @@
+intent: LOTTERY_PRIZE_SCAM
+description: Fake lottery winnings, Publisher Clearing House sweepstakes, or foreign
+  inheritance demands.
+category: Lottery
+weight: 35
+priority: high
+phrases:
+- publishers clearing house winner
+- you won five million dollars
+- mega millions prize claim
+- pay processing fee to claim prize
+- tax fee on your sweepstakes check
+- unclaimed inheritance fund
+- foreign lottery winner
+- delivery van is waiting with your cash prize
+- wire upfront processing fee
+patterns:
+- publishers clearing house *
+- you won * dollars
+- pay * fee to claim
+- sweepstakes * prize
+- unclaimed * inheritance
+regex:
+- \b(publishers clearing house|sweepstakes|lottery winner|five million|claim prize|processing
+  fee|inheritance)\b
+future:
+  enable_fuzzy: true
+  enable_embeddings: false

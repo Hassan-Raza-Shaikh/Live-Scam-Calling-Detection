@@ -1,54 +1,81 @@
 intent: BANKING_FRAUD
-description: Fraudulent claims regarding bank accounts, suspicious activity, or transactions.
+description: Fraudulent claims regarding bank accounts, suspicious activity, transactions,
+  or fake fraud departments.
 category: Banking
-weight: 35
+weight: 38
 priority: high
 phrases:
-  - bank account has been blocked
-  - unauthorized transaction
-  - suspend your credit card
-  - security alert from bank
-  - routing number
-  - check routing
-  - unusual activity on your account
-  - unusual activity
-  - suspicious activity
-  - security verification
-  - security department
-  - fraud prevention department
-  - fraud department
-  - confirm your full name
-  - confirm your identity
-  - verify your identity
-  - alerts from your bank
-  - alert from your bank
-  - online account
-  - safe account
-  - government holding account
-  - compromised account
-  - did you authorize this
-  - did you make this transaction
-  - funds are at risk
-  - secure your money
-  - wire transfer
-  - zelle transfer
+- bank account has been blocked
+- unauthorized transaction
+- suspend your credit card
+- security alert from bank
+- routing number
+- check routing
+- unusual activity on your account
+- unusual activity
+- suspicious activity
+- security verification
+- security department
+- fraud prevention department
+- fraud department
+- confirm your full name
+- confirm your identity
+- verify your identity
+- alerts from your bank
+- alert from your bank
+- online account
+- safe account
+- government holding account
+- compromised account
+- did you authorize this
+- did you make this transaction
+- funds are at risk
+- secure your money
+- wire transfer
+- zelle transfer
+- venmo payment
+- paypal transfer
+- reverse the charge
+- reverse the transaction
+- cancel unauthorized charge
+- refund your stolen money
+- your debit card has been cloned
+- fraudulent withdrawal attempt
+- credit union security
+- chase fraud division
+- wells fargo security team
+- bank of america fraud alert
+- transfer your money to secure vault
+- federal reserve safe account
+- protect your balance
+- cash app transfer
+- deposit to safety account
+- pending debit transaction
+- card has been compromised
+- security block on your account
 patterns:
-  - unusual * activity
-  - suspicious * activity
-  - security * verification
-  - confirm your * name
-  - alerts from * bank
-  - activity on your * account
-  - verify * account
-  - transfer * safe account
-  - authorize * transaction
-  - notice * alert
-  - transfer money to * account
-  - verify your * credentials
-  - secure your * funds
+- unusual * activity
+- suspicious * activity
+- security * verification
+- confirm your * name
+- alerts from * bank
+- activity on your * account
+- verify * account
+- transfer * safe account
+- authorize * transaction
+- notice * alert
+- transfer money to * account
+- verify your * credentials
+- secure your * funds
+- cancel * unauthorized charge
+- fraud * department
+- reverse * transaction
+- compromised * account
+- protect your * balance
+- bank * fraud alert
 regex:
-  - "\\b(blocked|suspended|frozen|unauthorized|fraud|compromised|unusual|verification)\\b"
+- \b(blocked|suspended|frozen|unauthorized|fraud|compromised|unusual|verification|zelle|wire
+  transfer|safe account|holding account)\b
 future:
   enable_fuzzy: true
   enable_embeddings: false
-

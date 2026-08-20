@@ -4,27 +4,37 @@ from app.conversation.context import GraphState
 from app.preprocessing.cleaner import PIIMasker
 from app.detection.engine import DetectionEngine
 from app.risk.rule_engine import EmotionalManipulationAgent, SocialEngineeringPredictorAgent
+from app.speakers.diarization import SpeakerDiarizer
 from app.utils.logger import get_logger
 
 logger = get_logger(__name__)
 
-# Specialized Multi-Agent Workers
+# Specialized Multi-Agent Workers & Speaker Diarizer
 _detection_engine = DetectionEngine()
 _emotional_agent = EmotionalManipulationAgent()
 _predictor_agent = SocialEngineeringPredictorAgent()
+_speaker_diarizer = SpeakerDiarizer()
 
 async def workflow_supervisor_node(state: GraphState) -> GraphState:
-    """Entry node: Preprocesses incoming transcript and routes to supervisor workflow."""
+    """Entry node: Preprocesses incoming transcript, determines speaker role, and routes to supervisor workflow."""
     raw_text = state.get("latest_transcript", "")
     masked_text = PIIMasker.mask(raw_text)
     state["latest_transcript"] = masked_text
+    
+    # Identify or preserve speaker role (CALLER vs VICTIM)
+    speaker = state.get("speaker")
+    if not speaker:
+        speaker = _speaker_diarizer.predict_role_from_text(raw_text)
+        state["speaker"] = speaker
+        
     state["next_node"] = "memory_supervisor"
     return state
 
 async def memory_supervisor_node(state: GraphState) -> GraphState:
-    """Manages transcript history and appends latest masked segment."""
+    """Manages transcript history and appends latest masked segment with speaker role."""
     transcripts = state.get("transcripts", [])
-    transcripts.append({"text": state.get("latest_transcript"), "role": "CALLER"})
+    speaker = state.get("speaker", "CALLER")
+    transcripts.append({"text": state.get("latest_transcript"), "role": speaker})
     state["transcripts"] = transcripts
     state["next_node"] = "workers_execution"
     return state
@@ -116,9 +126,19 @@ async def decision_supervisor_node(state: GraphState) -> GraphState:
     else:
         final_score = 0.0
 
-    state["overall_risk_score"] = round(final_score, 2)
+    speaker = state.get("speaker", "CALLER")
     tactics_str = ", ".join(state.get("detected_tactics", [])) or "none"
     consensus = state.get("consensus_hypothesis", "")
+
+    # If the speaker is the legitimate user (Owner / Victim), do not attribute caller scam threat to them
+    if speaker in ("OWNER", "VICTIM", "USER"):
+        state["overall_risk_score"] = 0.0
+        state["risk_level"] = "LOW"
+        state["explanation"] = f"🟢 User (Owner) speaking: Sentinel AI is shielding your call."
+        state["recommended_action"] = "Stay alert. Never read OTP codes, PINs, or download remote access tools for the caller."
+        return state
+
+    state["overall_risk_score"] = round(final_score, 2)
 
     if final_score >= 0.75:
         state["risk_level"] = "CRITICAL" if final_score >= 0.90 else "HIGH"

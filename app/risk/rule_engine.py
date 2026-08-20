@@ -5,9 +5,10 @@ class OTPDetectionAgent:
     """Agent specialized in detecting OTP and 2FA code theft requests."""
     
     KEYWORDS = [
-        "verification code", "one-time password", "one time password", "otp", 
-        "6-digit code", "six digit code", "pin number", "read me the code", 
-        "security code", "passcode", "pass code"
+        "verification code", "one-time password", "one time password", "otp", "otp code",
+        "6-digit code", "six digit code", "6-digit", "six digit", "pin number", "pin code", "read me the code", 
+        "security code", "passcode", "pass code", "sms code", "authentication code",
+        "two-factor code", "2fa code", "confirmation digits", "sms authorization code"
     ]
     
     def analyze(self, transcript: str) -> WorkerAnalysisResult:
@@ -19,7 +20,7 @@ class OTPDetectionAgent:
             agent_name="otp_detection_agent",
             confidence=0.95,
             score=score,
-            detected_tactics=["OTP_THEFT"] if len(matched) > 0 else [],
+            detected_tactics=["OTP_DEMAND", "OTP_THEFT"] if len(matched) > 0 else [],
             reasoning=f"Matched high-risk verification code theft indicators: {matched}" if matched else "No OTP theft indicators found."
         )
 
@@ -29,25 +30,28 @@ class EmotionalManipulationAgent:
     FEAR_INTIMIDATION = [
         "arrest warrant", "warrant for your arrest", "sheriff", "police department", 
         "jail", "prison", "lawsuit", "legal charges", "assets will be frozen", 
-        "bank account will be suspended", "deportation", "federal crime", "subpoena"
+        "bank account will be suspended", "deportation", "federal crime", "subpoena",
+        "court summons", "asset seizure", "illegal package", "border patrol", "felony charges"
     ]
     
     ISOLATION_SECRECY = [
         "do not tell anyone", "do not talk to the bank", "do not hang up", 
         "stay on the line", "keep this between us", "strictly confidential", 
         "undercover investigation", "do not tell your family", "do not tell your spouse",
-        "do not tell the teller"
+        "do not tell the teller", "do not disconnect", "keep the line open"
     ]
     
     EMERGENCY_SYMPATHY = [
         "hospital", "car accident", "bail money", "in jail", "grandson", 
         "granddaughter", "kidnapped", "emergency funds", "please help me grandma",
-        "please help me grandpa", "need money right now for surgery"
+        "please help me grandpa", "need money right now for surgery", "lawyer needs cash",
+        "public defender wire"
     ]
     
     PRESSURE_URGENCY = [
-        "within 1 hour", "within 30 minutes", "immediately", "right now", 
-        "final chance", "before it is too late", "last warning", "officer is on the way"
+        "within 1 hour", "within 30 minutes", "within 10 minutes", "immediately", "right now", 
+        "final chance", "before it is too late", "last warning", "officer is on the way",
+        "power cut off", "service disconnection", "final shutoff notice"
     ]
     
     def analyze(self, transcript: str) -> WorkerAnalysisResult:
@@ -68,7 +72,6 @@ class EmotionalManipulationAgent:
         if matched_pressure:
             tactics.append("HIGH_PRESSURE_URGENCY")
             
-        # Compute combined emotional manipulation severity score
         total_hits = len(matched_fear) + len(matched_isolation) + len(matched_sympathy) + len(matched_pressure)
         if total_hits >= 2:
             score = 0.92
@@ -98,8 +101,14 @@ class EmotionalManipulationAgent:
 class SocialEngineeringPredictorAgent:
     """Agent that assesses conversational trajectory and predicts imminent scam demands."""
     
-    AUTHORITY_TRAPS = ["federal officer", "badge number", "case number", "investigator", "agent id"]
-    PAYMENT_TRAPS = ["gift card", "target card", "apple card", "crypto", "bitcoin atm", "wire transfer", "cash in envelope"]
+    AUTHORITY_TRAPS = [
+        "federal officer", "badge number", "case number", "investigator", "agent id",
+        "fraud division", "senior analyst", "customs officer", "department of justice"
+    ]
+    PAYMENT_TRAPS = [
+        "gift card", "target card", "apple card", "crypto", "bitcoin atm", "wire transfer",
+        "cash in envelope", "greendot", "moneypak", "usdt", "safe account", "zelle", "venmo"
+    ]
     
     def analyze(self, transcript: str, history: List[Dict[str, Any]] = None) -> WorkerAnalysisResult:
         text_lower = transcript.lower()
@@ -133,7 +142,9 @@ class ScamDetectionAgent:
     PATTERNS = [
         "fraud department", "suspicious transaction", "safe account",
         "account freeze", "microsoft support", "unauthorized charge",
-        "unusual activity", "security verification", "confirm your name"
+        "unusual activity", "security verification", "confirm your name",
+        "anydesk", "teamviewer", "eventvwr", "publishers clearing house",
+        "bitcoin atm", "wire money", "zelle payment", "parcel seized"
     ]
     
     def analyze(self, transcript: str) -> WorkerAnalysisResult:

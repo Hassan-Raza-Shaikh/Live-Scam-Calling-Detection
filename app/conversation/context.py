@@ -42,10 +42,11 @@ class SentinelState(BaseModel):
     recommended_action: str = ""
     next_node: str = "END"
 
-class GraphState(TypedDict):
+class GraphState(TypedDict, total=False):
     session_id: str
     transcripts: List[Dict[str, Any]]
     latest_transcript: str
+    speaker: str
     fast_path_alert: bool
     worker_results: Dict[str, Dict[str, Any]]
     retrieved_patterns: List[Dict[str, Any]]

@@ -1,18 +1,49 @@
 intent: GOVERNMENT_IMPERSONATION
-description: Fake IRS agents, social security officials, police officers, or tax authorities.
-category: Impersonation
-weight: 35
+description: Impersonating law enforcement, tax authorities, social security, or federal
+  agencies.
+category: Government
+weight: 38
 priority: high
 phrases:
-  - tax evasion department
-  - irs collection agent
-  - police department arrest warrant
-  - federal reserve bank
+- arrest warrant
+- warrant for your arrest
+- internal revenue service
+- social security administration
+- federal bureau of investigation
+- drug enforcement administration
+- customs and border protection
+- department of justice
+- federal marshal
+- sheriff office
+- police department
+- legal lawsuit filed
+- asset seizure notice
+- tax evasion charges
+- social security number suspended
+- federal crime investigation
+- grand jury subpoena
+- court summons
+- immigration deportation order
+- illegal package intercepted
+- drugs and cash in package
+- border patrol officer
+- badge number
+- federal agent
+- officer david
+- officer miller
+- badge id
 patterns:
-  - calling from * irs
-  - warrant for * arrest
+- warrant for your *
+- calling from * internal revenue
+- social security * suspended
+- federal * investigation
+- department of * legal
+- arrest * issued
+- officer * badge
+- customs * package
+- seizure of your * assets
 regex:
-  - "\\b(irs|fbi|police|sheriff|arrest|jail|lawsuit)\\b"
+- \b(arrest|warrant|subpoena|irs|fbi|dea|police|sheriff|social security|deportation|seizure|federal)\b
 future:
   enable_fuzzy: true
   enable_embeddings: false

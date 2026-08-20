@@ -1,19 +1,42 @@
 intent: REMOTE_ACCESS
-description: Prompting the user to download or open remote desktop or screen sharing tools.
-category: Remote Access
-weight: 35
+description: Tricking user into installing remote access desktop tools or screen sharing.
+category: TechSupport
+weight: 38
 priority: high
 phrases:
-  - install anydesk now
-  - download teamviewer
-  - open anydesk
-  - install screen sharing
+- download anydesk
+- install teamviewer
+- open ultraviewer
+- download quicksupport
+- open anydesk
+- open teamviewer
+- connect to my secure server
+- press windows key and r
+- type eventvwr
+- event viewer errors
+- look at all the trojans on your pc
+- give me your 9 digit id
+- allow remote connection
+- grant remote access
+- screen sharing session
+- download supremo
+- download rustdesk
+- type cmd and enter
+- your computer has been hacked by foreign ip
+- syskey lock
+- windows defender breached
 patterns:
-  - install * anydesk
-  - download * teamviewer
-  - download * tool
+- download * anydesk
+- install * teamviewer
+- open * ultraviewer
+- remote * connection
+- press * windows key
+- grant * access
+- screen * share
+- give me your * digit id
 regex:
-  - "\\b(anydesk|teamviewer|supremo|rustdesk)\\b"
+- \b(anydesk|teamviewer|ultraviewer|quicksupport|rustdesk|eventvwr|event viewer|remote
+  access|screen share)\b
 future:
   enable_fuzzy: true
   enable_embeddings: false

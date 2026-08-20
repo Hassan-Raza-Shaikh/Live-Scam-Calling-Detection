@@ -1,0 +1,28 @@
+intent: UTILITY_DISCONNECTION_SCAM
+description: Urgent threats to cut off electricity, water, or gas in 30 minutes unless
+  prepaid voucher provided.
+category: Utility
+weight: 35
+priority: high
+phrases:
+- power will be disconnected in 30 minutes
+- electricity cut off notice
+- water service termination
+- gas company overdue balance
+- pay with greendot moneypak
+- pay with target gift card for electric bill
+- utility disconnection technician is dispatched
+- final shutoff notice
+- avoid power suspension today
+patterns:
+- power * disconnected
+- electricity * cut off
+- gas * termination
+- pay with * greendot
+- pay with * gift card
+- final * shutoff
+regex:
+- \b(electricity|power|shutoff|disconnection|cut off|greendot|moneypak|utility bill)\b
+future:
+  enable_fuzzy: true
+  enable_embeddings: false
