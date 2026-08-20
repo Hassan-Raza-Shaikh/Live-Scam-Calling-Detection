@@ -41,6 +41,7 @@ export default function App() {
   // File Upload State
   const [isUploading, setIsUploading] = useState(false);
   const [uploadFeedback, setUploadFeedback] = useState<string | null>(null);
+  const [audioAlertsEnabled, setAudioAlertsEnabled] = useState(true);
 
   const [threat, setThreat] = useState<ThreatData>({
     risk_score: 0.0,
@@ -61,6 +62,48 @@ export default function App() {
   const silenceTimerRef = useRef<any>(null);
   const pendingInterimRef = useRef<string>('');
   const pcmBufferRef = useRef<Float32Array[]>([]);
+  const prevThreatPercentRef = useRef<number>(0);
+  const audioAlertsEnabledRef = useRef<boolean>(true);
+  audioAlertsEnabledRef.current = audioAlertsEnabled;
+
+  const playSubtleWarningChime = (threatPercent: number) => {
+    try {
+      const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
+      if (!AudioContextClass) return;
+      const ctx = new AudioContextClass();
+
+      const gainNode = ctx.createGain();
+      gainNode.gain.setValueAtTime(0.0001, ctx.currentTime);
+      gainNode.gain.linearRampToValueAtTime(0.12, ctx.currentTime + 0.02);
+      gainNode.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.35);
+      gainNode.connect(ctx.destination);
+
+      // Warm subtle dual-tone sine wave chime (scales smoothly with severity)
+      const baseFreq = 540 + Math.min(240, (threatPercent - 50) * 4);
+      const osc1 = ctx.createOscillator();
+      osc1.type = 'sine';
+      osc1.frequency.setValueAtTime(baseFreq, ctx.currentTime);
+      osc1.frequency.exponentialRampToValueAtTime(baseFreq * 1.25, ctx.currentTime + 0.15);
+      osc1.connect(gainNode);
+
+      const osc2 = ctx.createOscillator();
+      osc2.type = 'sine';
+      osc2.frequency.setValueAtTime(baseFreq * 1.5, ctx.currentTime);
+      osc2.frequency.exponentialRampToValueAtTime(baseFreq * 1.88, ctx.currentTime + 0.15);
+      osc2.connect(gainNode);
+
+      osc1.start(ctx.currentTime);
+      osc2.start(ctx.currentTime);
+      osc1.stop(ctx.currentTime + 0.38);
+      osc2.stop(ctx.currentTime + 0.38);
+
+      setTimeout(() => {
+        try { ctx.close(); } catch (e) {}
+      }, 450);
+    } catch (e) {
+      console.warn('Audio warning chime:', e);
+    }
+  };
 
   isLiveRef.current = isLive;
 
@@ -318,6 +361,7 @@ export default function App() {
   const startLiveSession = async () => {
     setIsLive(true);
     isLiveRef.current = true;
+    prevThreatPercentRef.current = 0;
     pcmBufferRef.current = [];
     const newSessionId = `sess_${Math.random().toString(36).substring(2, 9)}`;
     setSessionId(newSessionId);
@@ -331,6 +375,15 @@ export default function App() {
         try {
           const data = JSON.parse(event.data);
           if (data.type === 'threat_update') {
+            const currentPercent = Math.round((data.risk_score || 0) * 100);
+            const previousPercent = prevThreatPercentRef.current;
+
+            // Trigger subtle warning sound on >= 50% and on every upward tick (e.g. 50 -> 51)
+            if (audioAlertsEnabledRef.current && currentPercent >= 50 && currentPercent > previousPercent) {
+              playSubtleWarningChime(currentPercent);
+            }
+
+            prevThreatPercentRef.current = currentPercent;
             setThreat(data);
             if (data.speaker) {
               setTranscriptHistory((prev) =>
@@ -612,6 +665,40 @@ export default function App() {
 
         {/* Global Toolbar Controls */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
+          {/* Audio Chime Alert Toggle */}
+          <button
+            onClick={() => setAudioAlertsEnabled(!audioAlertsEnabled)}
+            title="Warning chime plays when threat reaches 50% and on every upward tick"
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.4rem',
+              padding: '0.3rem 0.65rem',
+              borderRadius: '6px',
+              border: '1px solid #27272a',
+              backgroundColor: audioAlertsEnabled ? 'rgba(16, 185, 129, 0.12)' : '#121215',
+              color: audioAlertsEnabled ? '#34d399' : '#71717a',
+              fontSize: '0.74rem',
+              fontWeight: 500,
+              cursor: 'pointer'
+            }}
+          >
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
+              {audioAlertsEnabled ? (
+                <>
+                  <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/>
+                </>
+              ) : (
+                <>
+                  <line x1="23" y1="9" x2="17" y2="15"/>
+                  <line x1="17" y1="9" x2="23" y2="15"/>
+                </>
+              )}
+            </svg>
+            {audioAlertsEnabled ? 'Chime (≥50%)' : 'Chime Off'}
+          </button>
+
           {/* STT Engine Switch */}
           <div style={{ display: 'flex', backgroundColor: '#121215', padding: '0.2rem', borderRadius: '6px', border: '1px solid #27272a' }}>
             <button

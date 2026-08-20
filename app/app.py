@@ -69,7 +69,12 @@ async def websocket_live_stream(websocket: WebSocket, session_id: str):
     await manager.connect(session_id, websocket)
     elevenlabs_client = None
     
+    # State tracking across the live conversation session
+    session_cumulative_risk: float = 0.0
+    session_transcripts: List[Dict[str, Any]] = []
+    
     async def process_transcript(transcript: str, speaker: Optional[str] = None, similarity_pct: int = 0):
+        nonlocal session_cumulative_risk, session_transcripts
         if not transcript or not transcript.strip():
             return
         try:
@@ -85,7 +90,7 @@ async def websocket_live_stream(websocket: WebSocket, session_id: str):
                 "session_id": session_id,
                 "latest_transcript": transcript,
                 "speaker": resolved_speaker,
-                "transcripts": [],
+                "transcripts": list(session_transcripts),
                 "fast_path_alert": fast_path_alert,
                 "worker_results": {},
                 "retrieved_patterns": [],
@@ -100,15 +105,56 @@ async def websocket_live_stream(websocket: WebSocket, session_id: str):
             }
             
             final_state = await sentinel_app.ainvoke(initial_state)
+            turn_risk = float(final_state.get("overall_risk_score", 0.0))
+            
+            # Dynamic Total Threat Score Tracking (Turns UP on threats, Turns DOWN on neutral/safe turns)
+            text_lower = transcript.lower()
+            if resolved_speaker == "OWNER":
+                # Check for active resistance / refusal from owner (e.g. "no", "hanging up", "will call my bank")
+                is_resisting = any(w in text_lower for w in ["never share", "hang up", "hanging up", "who is your supervisor", "calling my bank", "not giving", "refuse", "fake", "scam", "report you", "calling police"])
+                if is_resisting:
+                    session_cumulative_risk = max(0.0, session_cumulative_risk * 0.65)
+                else:
+                    # Natural cool-down on regular owner responses
+                    session_cumulative_risk = max(0.0, session_cumulative_risk * 0.85)
+            else:
+                # CALLER speaking
+                if turn_risk >= 0.40 or fast_path_alert:
+                    # Escalating threat: ramp up rapidly
+                    session_cumulative_risk = max(session_cumulative_risk * 0.60 + turn_risk * 0.60, turn_risk)
+                    session_cumulative_risk = min(1.0, session_cumulative_risk)
+                else:
+                    # Caller says harmless/neutral phrase: decay threat score smoothly
+                    session_cumulative_risk = max(0.0, session_cumulative_risk * 0.80)
+            
+            # Resolve dynamic session risk level
+            total_risk = round(session_cumulative_risk, 2)
+            if total_risk >= 0.85:
+                session_level = "CRITICAL"
+            elif total_risk >= 0.70:
+                session_level = "HIGH"
+            elif total_risk >= 0.45:
+                session_level = "MEDIUM"
+            else:
+                session_level = "LOW"
+                
+            # Append turn to session memory
+            session_transcripts.append({
+                "speaker": resolved_speaker,
+                "text": transcript,
+                "risk": turn_risk,
+                "cumulative_risk": total_risk
+            })
             
             # Send real-time response payload back to client React/Electron app
             response = {
                 "type": "threat_update",
                 "session_id": session_id,
-                "speaker": final_state.get("speaker", resolved_speaker),
+                "speaker": resolved_speaker,
                 "voice_match_score": similarity_pct,
-                "risk_score": final_state.get("overall_risk_score", 0.0),
-                "risk_level": final_state.get("risk_level", "LOW"),
+                "risk_score": total_risk,
+                "turn_risk_score": turn_risk,
+                "risk_level": session_level,
                 "fast_path_alert": fast_path_alert,
                 "latest_transcript": final_state.get("latest_transcript"),
                 "detected_tactics": final_state.get("detected_tactics", []),
