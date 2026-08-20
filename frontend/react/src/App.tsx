@@ -66,6 +66,7 @@ export default function App() {
   const prevThreatPercentRef = useRef<number>(0);
   const audioAlertsEnabledRef = useRef<boolean>(true);
   const speakerGapDelayMsRef = useRef<number>(450);
+  const lastSentPhraseRef = useRef<{ text: string; time: number; id: string }>({ text: '', time: 0, id: '' });
   audioAlertsEnabledRef.current = audioAlertsEnabled;
   speakerGapDelayMsRef.current = speakerGapDelayMs;
 
@@ -308,7 +309,24 @@ export default function App() {
   const sendPhraseToBackend = (text: string, speakerOverride?: string) => {
     if (!text || !text.trim()) return;
     const cleanText = text.trim();
-    
+    const normText = cleanText.toLowerCase().replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g, "").replace(/\s+/g, " ");
+    const now = Date.now();
+
+    // Deduplication check: ignore exact repeats within 2.5 seconds
+    if (
+      lastSentPhraseRef.current.text &&
+      normText === lastSentPhraseRef.current.text &&
+      now - lastSentPhraseRef.current.time < 2500
+    ) {
+      return;
+    }
+
+    // Check if new phrase is an extension of recent phrase within 1.8 seconds (interim vs final)
+    const isExtension =
+      lastSentPhraseRef.current.text &&
+      now - lastSentPhraseRef.current.time < 1800 &&
+      normText.startsWith(lastSentPhraseRef.current.text);
+
     // Resolve target speaker (Owner in Green, Caller in Red)
     let targetSpeaker = speakerOverride;
     if (!targetSpeaker) {
@@ -340,14 +358,28 @@ export default function App() {
     pendingInterimRef.current = '';
     setLiveInterim('');
 
-    // Append to local history immediately with initial speaker
-    const newItem: TranscriptItem = {
-      id: Math.random().toString(36).substring(2, 9),
-      text: cleanText,
-      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
-      speaker: targetSpeaker
-    };
-    setTranscriptHistory((prev) => [newItem, ...prev.slice(0, 19)]);
+    const turnId = isExtension && lastSentPhraseRef.current.id ? lastSentPhraseRef.current.id : Math.random().toString(36).substring(2, 9);
+    lastSentPhraseRef.current = { text: normText, time: now, id: turnId };
+
+    if (isExtension) {
+      // Update existing latest turn instead of creating duplicate
+      setTranscriptHistory((prev) =>
+        prev.map((item) =>
+          item.id === turnId
+            ? { ...item, text: cleanText, speaker: targetSpeaker }
+            : item
+        )
+      );
+    } else {
+      // Append new turn
+      const newItem: TranscriptItem = {
+        id: turnId,
+        text: cleanText,
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
+        speaker: targetSpeaker
+      };
+      setTranscriptHistory((prev) => [newItem, ...prev.slice(0, 19)]);
+    }
 
     // Send to backend via WebSocket with audio chunk for acoustic verification
     if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
@@ -465,36 +497,38 @@ export default function App() {
           };
 
           recognition.onresult = (event: any) => {
-            let fullInterim = '';
+            let finalPiece = '';
+            let interimPiece = '';
+
             for (let i = event.resultIndex; i < event.results.length; ++i) {
-              const piece = event.results[i][0].transcript;
-              if (event.results[i].isFinal) {
-                if (piece && piece.trim()) {
-                  if (silenceTimerRef.current) {
-                    clearTimeout(silenceTimerRef.current);
-                    silenceTimerRef.current = null;
-                  }
-                  sendPhraseToBackend(piece);
-                  fullInterim = '';
-                  setLiveInterim('');
-                  pendingInterimRef.current = '';
-                }
+              const res = event.results[i];
+              if (res.isFinal) {
+                finalPiece += (finalPiece ? ' ' : '') + res[0].transcript;
               } else {
-                fullInterim += piece;
+                interimPiece += (interimPiece ? ' ' : '') + res[0].transcript;
               }
             }
 
-            if (fullInterim) {
-              setLiveInterim(fullInterim);
-              pendingInterimRef.current = fullInterim;
+            if (finalPiece && finalPiece.trim()) {
+              if (silenceTimerRef.current) {
+                clearTimeout(silenceTimerRef.current);
+                silenceTimerRef.current = null;
+              }
+              setLiveInterim('');
+              pendingInterimRef.current = '';
+              sendPhraseToBackend(finalPiece.trim());
+            } else if (interimPiece && interimPiece.trim()) {
+              setLiveInterim(interimPiece);
+              pendingInterimRef.current = interimPiece;
 
               // Use adjustable gap delay slider to finalize speech turn between natural gaps
               if (silenceTimerRef.current) clearTimeout(silenceTimerRef.current);
               silenceTimerRef.current = setTimeout(() => {
                 if (pendingInterimRef.current && pendingInterimRef.current.trim().length > 3) {
-                  sendPhraseToBackend(pendingInterimRef.current);
+                  const phrase = pendingInterimRef.current.trim();
                   pendingInterimRef.current = '';
                   setLiveInterim('');
+                  sendPhraseToBackend(phrase);
                 }
               }, speakerGapDelayMsRef.current);
             }
