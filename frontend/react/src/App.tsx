@@ -37,6 +37,7 @@ export default function App() {
   const [enrollmentStatus, setEnrollmentStatus] = useState<string | null>(null);
   const [speakerMode, setSpeakerMode] = useState<'AUTO' | 'OWNER' | 'CALLER'>('AUTO');
   const [micGain, setMicGain] = useState<number>(2.5);
+  const [speakerGapDelayMs, setSpeakerGapDelayMs] = useState<number>(450);
 
   // File Upload State
   const [isUploading, setIsUploading] = useState(false);
@@ -64,7 +65,9 @@ export default function App() {
   const pcmBufferRef = useRef<Float32Array[]>([]);
   const prevThreatPercentRef = useRef<number>(0);
   const audioAlertsEnabledRef = useRef<boolean>(true);
+  const speakerGapDelayMsRef = useRef<number>(450);
   audioAlertsEnabledRef.current = audioAlertsEnabled;
+  speakerGapDelayMsRef.current = speakerGapDelayMs;
 
   const playSubtleWarningChime = (threatPercent: number) => {
     try {
@@ -467,6 +470,10 @@ export default function App() {
               const piece = event.results[i][0].transcript;
               if (event.results[i].isFinal) {
                 if (piece && piece.trim()) {
+                  if (silenceTimerRef.current) {
+                    clearTimeout(silenceTimerRef.current);
+                    silenceTimerRef.current = null;
+                  }
                   sendPhraseToBackend(piece);
                   fullInterim = '';
                   setLiveInterim('');
@@ -480,6 +487,16 @@ export default function App() {
             if (fullInterim) {
               setLiveInterim(fullInterim);
               pendingInterimRef.current = fullInterim;
+
+              // Use adjustable gap delay slider to finalize speech turn between natural gaps
+              if (silenceTimerRef.current) clearTimeout(silenceTimerRef.current);
+              silenceTimerRef.current = setTimeout(() => {
+                if (pendingInterimRef.current && pendingInterimRef.current.trim().length > 3) {
+                  sendPhraseToBackend(pendingInterimRef.current);
+                  pendingInterimRef.current = '';
+                  setLiveInterim('');
+                }
+              }, speakerGapDelayMsRef.current);
             }
           };
 
@@ -551,7 +568,8 @@ export default function App() {
             if (!isLiveRef.current) return;
             const data = e.inputBuffer.getChannelData(0);
             pcmBufferRef.current.push(new Float32Array(data));
-            if (pcmBufferRef.current.length > 14) {
+            const maxChunks = Math.max(6, Math.round(speakerGapDelayMsRef.current / 35));
+            if (pcmBufferRef.current.length > maxChunks) {
               pcmBufferRef.current.shift();
             }
           };
@@ -847,9 +865,24 @@ export default function App() {
               step="0.5"
               value={micGain}
               onChange={(e) => setMicGain(parseFloat(e.target.value))}
-              style={{ width: '60px', accentColor: '#3b82f6', cursor: 'pointer' }}
+              style={{ width: '55px', accentColor: '#3b82f6', cursor: 'pointer' }}
             />
             <span style={{ color: '#a1a1aa', fontSize: '0.7rem' }}>{micGain.toFixed(1)}x</span>
+          </div>
+
+          {/* Speaker Gap & Biometric Alignment Delay Slider */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', borderLeft: '1px solid #27272a', paddingLeft: '0.75rem' }}>
+            <span style={{ color: '#71717a' }} title="Adjust pause delay between speech turns for acoustic speaker identification">Gap Delay:</span>
+            <input
+              type="range"
+              min="100"
+              max="1200"
+              step="50"
+              value={speakerGapDelayMs}
+              onChange={(e) => setSpeakerGapDelayMs(parseInt(e.target.value, 10))}
+              style={{ width: '65px', accentColor: '#10b981', cursor: 'pointer' }}
+            />
+            <span style={{ color: '#a1a1aa', fontSize: '0.7rem', minWidth: '38px' }}>{speakerGapDelayMs}ms</span>
           </div>
         </div>
       </div>

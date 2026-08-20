@@ -64,6 +64,39 @@ class ConnectionManager:
 
 manager = ConnectionManager()
 
+HUMAN_TACTIC_MAP = {
+    "BANKING_FRAUD": "Banking & Account Takeover",
+    "OTP_THEFT": "OTP & Passcode Theft Demand",
+    "OTP_REQUEST": "OTP / 2FA Verification Demand",
+    "OTP_FRAUD": "OTP & Credential Harvesting",
+    "GOVERNMENT_IMPERSONATION": "Law Enforcement / Gov Impersonation",
+    "TECH_SUPPORT": "Remote Access / Tech Support Scam",
+    "CRYPTO_INVESTMENT": "Crypto / High-Yield Investment Fraud",
+    "INVESTMENT_FRAUD": "Pig Butchering / Investment Fraud",
+    "FAMILY_EMERGENCY": "Family Emergency / Bail Exploitation",
+    "FAMILY_EMERGENCY_EXPLOITATION": "Family Emergency / Bail Exploitation",
+    "ISOLATION_COERCION": "Secrecy & Isolation Coercion",
+    "HIGH_PRESSURE_URGENCY": "High-Pressure Urgency Trap",
+    "FEAR_INTIMIDATION": "Fear & Arrest Intimidation",
+    "AUTHORITY_IMPERSONATION": "False Authority / Badge Claim",
+    "UNTRACEABLE_PAYMENT": "Untraceable Payment (Crypto/Gift Cards)",
+    "UNTRACEABLE_PAYMENT_DEMAND": "Untraceable Payment Demand",
+    "ORGANIZATION_IMPERSONATION": "Corporate / Brand Impersonation",
+    "VICTIM_COMPLIANCE_RISK": "Victim Active Compliance Risk",
+    "FAST_PATH_CREDENTIAL_THEFT": "Fast-Path 2FA Credential Theft",
+    "SCAM_TAXONOMY_MATCH": "Scam Pattern Signature Match",
+    "MEDICARE_FRAUD": "Medicare Benefits & Card Fraud",
+    "SIM_SWAP": "SIM Swap & Carrier Port-Out",
+    "EXTORTION": "Sextortion & Spyware Blackmail",
+    "COURT_JURY_DUTY": "Missed Jury Duty & Bench Warrant",
+    "AUTO_WARRANTY": "Auto Warranty Policy Expiration",
+    "REAL_ESTATE_RENTAL": "Rental Deposit & Wire Fraud",
+    "JOB_TASK_FRAUD": "Fake Employment & Task Optimization",
+    "CHECK_OVERPAYMENT": "Counterfeit Check Overpayment",
+    "STUDENT_LOAN_FRAUD": "Student Loan Debt Relief Scam",
+    "TIMESHARE_FRAUD": "Timeshare Exit & Escrow Scam"
+}
+
 @app.websocket("/ws/live/{session_id}")
 async def websocket_live_stream(websocket: WebSocket, session_id: str):
     await manager.connect(session_id, websocket)
@@ -72,9 +105,10 @@ async def websocket_live_stream(websocket: WebSocket, session_id: str):
     # State tracking across the live conversation session
     session_cumulative_risk: float = 0.0
     session_transcripts: List[Dict[str, Any]] = []
+    session_detected_tactics: set = set()
     
     async def process_transcript(transcript: str, speaker: Optional[str] = None, similarity_pct: int = 0):
-        nonlocal session_cumulative_risk, session_transcripts
+        nonlocal session_cumulative_risk, session_transcripts, session_detected_tactics
         if not transcript or not transcript.strip():
             return
         try:
@@ -106,6 +140,23 @@ async def websocket_live_stream(websocket: WebSocket, session_id: str):
             
             final_state = await sentinel_app.ainvoke(initial_state)
             turn_risk = float(final_state.get("overall_risk_score", 0.0))
+            raw_tactics = final_state.get("detected_tactics", [])
+            
+            # Convert raw tactics to clean human-readable tags
+            turn_human_tactics = []
+            for t in raw_tactics:
+                label = HUMAN_TACTIC_MAP.get(t, t.replace("_", " ").title())
+                turn_human_tactics.append(label)
+                
+            if fast_path_alert:
+                turn_human_tactics.append("Fast-Path 2FA Credential Theft")
+                
+            # Accumulate tactics on caller turns with threat indicators
+            if resolved_speaker == "CALLER" and (turn_risk > 0.35 or turn_human_tactics):
+                session_detected_tactics.update(turn_human_tactics)
+            elif resolved_speaker == "OWNER" and turn_risk >= 0.85:
+                # Active compliance
+                session_detected_tactics.add("Victim Active Compliance Risk")
             
             # Dynamic Total Threat Score Tracking (Turns UP on threats, Turns DOWN on neutral/safe turns)
             text_lower = transcript.lower()
@@ -119,7 +170,7 @@ async def websocket_live_stream(websocket: WebSocket, session_id: str):
                     session_cumulative_risk = max(0.0, session_cumulative_risk * 0.85)
             else:
                 # CALLER speaking
-                if turn_risk >= 0.40 or fast_path_alert:
+                if turn_risk >= 0.40 or fast_path_alert or turn_human_tactics:
                     # Escalating threat: ramp up rapidly
                     session_cumulative_risk = max(session_cumulative_risk * 0.60 + turn_risk * 0.60, turn_risk)
                     session_cumulative_risk = min(1.0, session_cumulative_risk)
@@ -146,7 +197,9 @@ async def websocket_live_stream(websocket: WebSocket, session_id: str):
                 "cumulative_risk": total_risk
             })
             
-            # Send real-time response payload back to client React/Electron app
+            # Formulate response with active session tactics
+            response_tactics = sorted(list(session_detected_tactics)) if session_detected_tactics else turn_human_tactics
+            
             response = {
                 "type": "threat_update",
                 "session_id": session_id,
@@ -157,7 +210,7 @@ async def websocket_live_stream(websocket: WebSocket, session_id: str):
                 "risk_level": session_level,
                 "fast_path_alert": fast_path_alert,
                 "latest_transcript": final_state.get("latest_transcript"),
-                "detected_tactics": final_state.get("detected_tactics", []),
+                "detected_tactics": response_tactics,
                 "explanation": final_state.get("explanation"),
                 "recommended_action": final_state.get("recommended_action")
             }
